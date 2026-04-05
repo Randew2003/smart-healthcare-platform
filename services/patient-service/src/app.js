@@ -1,18 +1,16 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-
-const patientRoutes = require('./routes/patientRoutes');
+import express from "express";
+import cors from "cors";
+import patientRoutes from "./routes/patientRoutes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('Patient service is running');
+app.get("/", (_req, res) => {
+  res.json({ message: "Patient service is running" });
 });
 
-app.use('/api/patients', patientRoutes);
+app.use("/api/patients", patientRoutes);
 
-module.exports = app;
+export default app;
