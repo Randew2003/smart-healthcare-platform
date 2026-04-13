@@ -45,6 +45,11 @@ const sessionSchema = new mongoose.Schema(
       type: String,
       enum: ["scheduled", "ongoing", "completed", "cancelled"],
       default: "scheduled",
+    },
+    notes: {
+      type: String,
+      trim: true,
+      default: "",
     }
   },
   {

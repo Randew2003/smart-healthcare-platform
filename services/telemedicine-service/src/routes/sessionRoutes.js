@@ -9,7 +9,12 @@ const {
   completeSession,
   cancelSession,
   updateMeetingDetails,
-  getMeetingDetails
+  getMeetingDetails,
+  updateSessionNotes,
+  getSessionNotes,
+  getSessionsByDoctor,
+  getSessionsByPatient,
+  getCompletedSessions
 } = require("../controllers/sessionController");
 
 const router = express.Router();
@@ -29,5 +34,14 @@ router.put("/:id/cancel", cancelSession);// CANCEL session
 // Meeting routes
 router.put("/:id/meeting", updateMeetingDetails);
 router.get("/:id/meeting", getMeetingDetails);
+
+// Notes routes
+router.put("/:id/notes", updateSessionNotes);
+router.get("/:id/notes", getSessionNotes);
+
+// History routes
+router.get("/doctor/:doctorId", getSessionsByDoctor);
+router.get("/patient/:patientId", getSessionsByPatient);
+router.get("/history/completed", getCompletedSessions);
 
 module.exports = router;
