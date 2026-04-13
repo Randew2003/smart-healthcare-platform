@@ -11,7 +11,10 @@ const {
   updateMeetingDetails,
   getMeetingDetails,
   updateSessionNotes,
-  getSessionNotes
+  getSessionNotes,
+  getSessionsByDoctor,
+  getSessionsByPatient,
+  getCompletedSessions
 } = require("../controllers/sessionController");
 
 const router = express.Router();
@@ -35,5 +38,10 @@ router.get("/:id/meeting", getMeetingDetails);
 // Notes routes
 router.put("/:id/notes", updateSessionNotes);
 router.get("/:id/notes", getSessionNotes);
+
+// History routes
+router.get("/doctor/:doctorId", getSessionsByDoctor);
+router.get("/patient/:patientId", getSessionsByPatient);
+router.get("/history/completed", getCompletedSessions);
 
 module.exports = router;
