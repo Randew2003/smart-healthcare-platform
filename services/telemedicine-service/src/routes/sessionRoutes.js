@@ -9,7 +9,9 @@ const {
   completeSession,
   cancelSession,
   updateMeetingDetails,
-  getMeetingDetails
+  getMeetingDetails,
+  updateSessionNotes,
+  getSessionNotes
 } = require("../controllers/sessionController");
 
 const router = express.Router();
@@ -29,5 +31,9 @@ router.put("/:id/cancel", cancelSession);// CANCEL session
 // Meeting routes
 router.put("/:id/meeting", updateMeetingDetails);
 router.get("/:id/meeting", getMeetingDetails);
+
+// Notes routes
+router.put("/:id/notes", updateSessionNotes);
+router.get("/:id/notes", getSessionNotes);
 
 module.exports = router;

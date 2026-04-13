@@ -274,3 +274,62 @@ exports.getMeetingDetails = async (req, res) => {
     });
   }
 };
+
+// ADD or UPDATE consultation notes
+// PUT /api/sessions/:id/notes
+exports.updateSessionNotes = async (req, res) => {
+  try {
+    const { notes } = req.body;
+
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    session.notes = notes || "";
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session notes updated successfully",
+      data: session,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET consultation notes
+// GET /api/sessions/:id/notes
+exports.getSessionNotes = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id).select(
+      "doctorId patientId appointmentId status notes"
+    );
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
