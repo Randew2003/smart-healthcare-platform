@@ -214,3 +214,63 @@ exports.cancelSession = async (req, res) => {
     });
   }
 };
+
+// UPDATE meeting details
+// PUT /api/sessions/:id/meeting
+exports.updateMeetingDetails = async (req, res) => {
+  try {
+    const { roomId, meetingLink } = req.body;
+
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    if (roomId !== undefined) session.roomId = roomId;
+    if (meetingLink !== undefined) session.meetingLink = meetingLink;
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Meeting details updated successfully",
+      data: session,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET meeting details
+// GET /api/sessions/:id/meeting
+exports.getMeetingDetails = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id).select(
+      "doctorId patientId appointmentId roomId meetingLink scheduledTime status"
+    );
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

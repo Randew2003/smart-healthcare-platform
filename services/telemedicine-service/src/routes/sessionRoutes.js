@@ -7,7 +7,9 @@ const {
   deleteSession,
   startSession,
   completeSession,
-  cancelSession
+  cancelSession,
+  updateMeetingDetails,
+  getMeetingDetails
 } = require("../controllers/sessionController");
 
 const router = express.Router();
@@ -23,5 +25,9 @@ router.delete("/:id", deleteSession);// Route to delete a session(DELETE /api/se
 router.put("/:id/start", startSession);// START session
 router.put("/:id/complete", completeSession);// COMPLETE session
 router.put("/:id/cancel", cancelSession);// CANCEL session
+
+// Meeting routes
+router.put("/:id/meeting", updateMeetingDetails);
+router.get("/:id/meeting", getMeetingDetails);
 
 module.exports = router;
