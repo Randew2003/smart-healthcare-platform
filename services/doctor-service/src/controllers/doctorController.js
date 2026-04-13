@@ -126,3 +126,250 @@ exports.deleteDoctor = async (req, res) => {
     });
   }
 };
+
+// ADD availability slot
+exports.addAvailability = async (req, res) => {
+  try {
+    const { day, startTime, endTime } = req.body;
+
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    doctor.availability.push({ day, startTime, endTime });
+    await doctor.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Availability slot added successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET doctor availability
+exports.getAvailability = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id).select("name specialization availability");
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      availabilityCount: doctor.availability.length,
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// UPDATE one availability slot
+exports.updateAvailability = async (req, res) => {
+  try {
+    const { day, startTime, endTime, isBooked } = req.body;
+
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const slot = doctor.availability.id(req.params.slotId);
+
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "Availability slot not found",
+      });
+    }
+
+    if (day !== undefined) slot.day = day;
+    if (startTime !== undefined) slot.startTime = startTime;
+    if (endTime !== undefined) slot.endTime = endTime;
+    if (isBooked !== undefined) slot.isBooked = isBooked;
+
+    await doctor.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Availability slot updated successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// DELETE one availability slot
+exports.deleteAvailability = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const slot = doctor.availability.id(req.params.slotId);
+
+    if (!slot) {
+      return res.status(404).json({
+        success: false,
+        message: "Availability slot not found",
+      });
+    }
+
+    slot.deleteOne();
+    await doctor.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Availability slot deleted successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET only verified doctors
+exports.getVerifiedDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({ isVerified: true }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET pending doctors for admin review
+exports.getPendingDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({ verificationStatus: "pending" }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// VERIFY doctor
+exports.verifyDoctor = async (req, res) => {
+  try {
+    const { verificationNotes } = req.body;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      {
+        isVerified: true,
+        verificationStatus: "verified",
+        verificationNotes: verificationNotes || "Doctor verified successfully",
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Doctor verified successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// REJECT doctor
+exports.rejectDoctor = async (req, res) => {
+  try {
+    const { verificationNotes } = req.body;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      {
+        isVerified: false,
+        verificationStatus: "rejected",
+        verificationNotes: verificationNotes || "Doctor verification rejected",
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Doctor rejected successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
