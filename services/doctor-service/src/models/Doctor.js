@@ -65,6 +65,26 @@ const doctorSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    licenseNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationStatus: {
+      type: String,
+      enum: ["pending", "verified", "rejected"],
+      default: "pending",
+    },
+    verificationNotes: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     availability: [availabilitySchema]
   },
   {

@@ -261,3 +261,115 @@ exports.deleteAvailability = async (req, res) => {
     });
   }
 };
+
+// GET only verified doctors
+exports.getVerifiedDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({ isVerified: true }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET pending doctors for admin review
+exports.getPendingDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.find({ verificationStatus: "pending" }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: doctors.length,
+      data: doctors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// VERIFY doctor
+exports.verifyDoctor = async (req, res) => {
+  try {
+    const { verificationNotes } = req.body;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      {
+        isVerified: true,
+        verificationStatus: "verified",
+        verificationNotes: verificationNotes || "Doctor verified successfully",
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Doctor verified successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// REJECT doctor
+exports.rejectDoctor = async (req, res) => {
+  try {
+    const { verificationNotes } = req.body;
+
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      {
+        isVerified: false,
+        verificationStatus: "rejected",
+        verificationNotes: verificationNotes || "Doctor verification rejected",
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Doctor rejected successfully",
+      data: doctor,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
