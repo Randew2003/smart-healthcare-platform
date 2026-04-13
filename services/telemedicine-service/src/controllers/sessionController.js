@@ -274,3 +274,119 @@ exports.getMeetingDetails = async (req, res) => {
     });
   }
 };
+
+// ADD or UPDATE consultation notes
+// PUT /api/sessions/:id/notes
+exports.updateSessionNotes = async (req, res) => {
+  try {
+    const { notes } = req.body;
+
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    session.notes = notes || "";
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session notes updated successfully",
+      data: session,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET consultation notes
+// GET /api/sessions/:id/notes
+exports.getSessionNotes = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id).select(
+      "doctorId patientId appointmentId status notes"
+    );
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET sessions by doctor ID
+// GET /api/sessions/doctor/:doctorId
+exports.getSessionsByDoctor = async (req, res) => {
+  try {
+    const sessions = await Session.find({ doctorId: req.params.doctorId }).sort({ scheduledTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET sessions by patient ID
+// GET /api/sessions/patient/:patientId
+exports.getSessionsByPatient = async (req, res) => {
+  try {
+    const sessions = await Session.find({ patientId: req.params.patientId }).sort({ scheduledTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET completed session history
+// GET /api/sessions/history/completed
+exports.getCompletedSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find({ status: "completed" }).sort({ endTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
