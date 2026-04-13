@@ -50,6 +50,19 @@ const sessionSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    prescriptionId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    followUpRequired: {
+      type: Boolean,
+      default: false,
+    },
+    followUpDate: {
+      type: Date,
+      default: null,
     }
   },
   {
