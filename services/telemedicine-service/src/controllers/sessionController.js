@@ -121,3 +121,156 @@ exports.deleteSession = async (req, res) => {
     });
   }
 };
+
+// START session (mark as ongoing)
+// PUT /api/sessions/:id/start
+exports.startSession = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // update status and start time
+    session.status = "ongoing";
+    session.startTime = new Date();
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session started",
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// COMPLETE session
+// PUT /api/sessions/:id/complete
+exports.completeSession = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    session.status = "completed";
+    session.endTime = new Date();
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session completed",
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// CANCEL session
+// PUT /api/sessions/:id/cancel
+exports.cancelSession = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    session.status = "cancelled";
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session cancelled",
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// UPDATE meeting details
+// PUT /api/sessions/:id/meeting
+exports.updateMeetingDetails = async (req, res) => {
+  try {
+    const { roomId, meetingLink } = req.body;
+
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    if (roomId !== undefined) session.roomId = roomId;
+    if (meetingLink !== undefined) session.meetingLink = meetingLink;
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Meeting details updated successfully",
+      data: session,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET meeting details
+// GET /api/sessions/:id/meeting
+exports.getMeetingDetails = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id).select(
+      "doctorId patientId appointmentId roomId meetingLink scheduledTime status"
+    );
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
