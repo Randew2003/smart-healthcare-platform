@@ -333,3 +333,60 @@ exports.getSessionNotes = async (req, res) => {
     });
   }
 };
+
+// GET sessions by doctor ID
+// GET /api/sessions/doctor/:doctorId
+exports.getSessionsByDoctor = async (req, res) => {
+  try {
+    const sessions = await Session.find({ doctorId: req.params.doctorId }).sort({ scheduledTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET sessions by patient ID
+// GET /api/sessions/patient/:patientId
+exports.getSessionsByPatient = async (req, res) => {
+  try {
+    const sessions = await Session.find({ patientId: req.params.patientId }).sort({ scheduledTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET completed session history
+// GET /api/sessions/history/completed
+exports.getCompletedSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find({ status: "completed" }).sort({ endTime: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: sessions.length,
+      data: sessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
