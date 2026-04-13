@@ -14,7 +14,9 @@ const {
   getSessionNotes,
   getSessionsByDoctor,
   getSessionsByPatient,
-  getCompletedSessions
+  getCompletedSessions,
+  updateFollowUpDetails,
+  getFollowUpDetails
 } = require("../controllers/sessionController");
 
 const router = express.Router();
@@ -43,5 +45,9 @@ router.get("/:id/notes", getSessionNotes);
 router.get("/doctor/:doctorId", getSessionsByDoctor);
 router.get("/patient/:patientId", getSessionsByPatient);
 router.get("/history/completed", getCompletedSessions);
+
+// Follow-up routes
+router.put("/:id/follow-up", updateFollowUpDetails);
+router.get("/:id/follow-up", getFollowUpDetails);
 
 module.exports = router;
