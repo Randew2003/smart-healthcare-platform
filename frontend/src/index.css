@@ -1,0 +1,15 @@
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Archivo", sans-serif;
+  background: #f8fbf5;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
