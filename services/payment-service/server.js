@@ -4,7 +4,7 @@ dotenv.config();
 import app from "./src/app.js";
 import connectDB from "./src/config/db.js";
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 4004;
 
 async function startServer() {
   try {
