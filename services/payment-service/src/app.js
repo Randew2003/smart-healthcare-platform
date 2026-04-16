@@ -12,6 +12,10 @@ app.get("/", (_req, res) => {
   res.json({ message: "Payment service is running" });
 });
 
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "payment-service" });
+});
+
 app.use("/api/payments", paymentRoutes);
 
 export default app;

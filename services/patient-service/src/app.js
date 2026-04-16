@@ -11,6 +11,10 @@ app.get("/", (_req, res) => {
   res.json({ message: "Patient service is running" });
 });
 
+app.get("/health", (_req, res) => {
+  res.json({ ok: true, service: "patient-service" });
+});
+
 app.use("/api/patients", patientRoutes);
 
 export default app;
