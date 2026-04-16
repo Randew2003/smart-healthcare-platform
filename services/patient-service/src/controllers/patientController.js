@@ -1,5 +1,6 @@
 import Patient from "../models/Patient.js";
 
+
 export async function createProfile(req, res) {
   try {
     const userId = req.user.id;
@@ -232,3 +233,73 @@ export async function getReports(req, res) {
     return res.status(500).json({ message: error.message });
   }
 }
+
+// GET patient profile for doctor view
+export const getPatientProfileForDoctor = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    const patient = await Patient.findById(patientId).select(
+      "fullName email phone dateOfBirth gender address"
+    );
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient medical history for doctor view
+export const getPatientMedicalHistoryForDoctor = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    const patient = await Patient.findById(patientId).select("medicalHistory");
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient.medicalHistory || []);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient prescriptions for doctor view
+export const getPatientPrescriptionsForDoctor = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    const patient = await Patient.findById(patientId).select("prescriptions");
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient.prescriptions || []);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient reports for doctor view
+export const getPatientReportsForDoctor = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    const patient = await Patient.findById(patientId).select("reports");
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient.reports || []);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
