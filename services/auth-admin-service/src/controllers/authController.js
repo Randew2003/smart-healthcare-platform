@@ -3,11 +3,20 @@ import { signToken } from "../utils/token.js";
 import crypto from "crypto";
 import { sendPasswordResetOtpEmail } from "../utils/email.js";
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function getAdminRegisterSecret(body) {
+  return body.adminSecret || body.registerSecret || body.secret || "";
+}
+
 export async function register(req, res) {
   try {
     const { fullName, email, password, role, phone, doctorApplication } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!fullName || !email || !password || !role) {
+    if (!fullName || !normalizedEmail || !password || !role) {
       return res.status(400).json({ message: "fullName, email, password, and role are required." });
     }
 
@@ -15,7 +24,20 @@ export async function register(req, res) {
       return res.status(400).json({ message: "Invalid role." });
     }
 
-    const exists = await User.findOne({ email });
+    if (role === "admin") {
+      const adminRegisterSecret = process.env.ADMIN_REGISTER_SECRET;
+      const providedSecret = getAdminRegisterSecret(req.body);
+
+      if (!adminRegisterSecret) {
+        return res.status(500).json({ message: "Admin registration is not configured." });
+      }
+
+      if (!providedSecret || providedSecret !== adminRegisterSecret) {
+        return res.status(403).json({ message: "Invalid admin registration secret." });
+      }
+    }
+
+    const exists = await User.findOne({ email: normalizedEmail });
     if (exists) {
       return res.status(409).json({ message: "User already exists with this email." });
     }
@@ -34,7 +56,7 @@ export async function register(req, res) {
 
     const user = await User.create({
       fullName,
-      email,
+      email: normalizedEmail,
       password,
       role,
       phone: phone || "",
@@ -82,7 +104,7 @@ export async function register(req, res) {
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizeEmail(email) });
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid email or password." });
@@ -137,12 +159,13 @@ export async function getMe(req, res) {
 export async function forgotPassword(req, res) {
   try {
     const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email) {
+    if (!normalizedEmail) {
       return res.status(400).json({ message: "Email is required." });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (user) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -164,8 +187,9 @@ export async function forgotPassword(req, res) {
 export async function resetPassword(req, res) {
   try {
     const { email, otp, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !otp || !password) {
+    if (!normalizedEmail || !otp || !password) {
       return res.status(400).json({ message: "Email, OTP, and new password are required." });
     }
 
@@ -176,7 +200,7 @@ export async function resetPassword(req, res) {
     const tokenHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
 
     const user = await User.findOne({
-      email,
+      email: normalizedEmail,
       resetPasswordToken: tokenHash,
       resetPasswordExpires: { $gt: new Date() }
     });
