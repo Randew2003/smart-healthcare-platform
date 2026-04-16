@@ -14,7 +14,10 @@ const {
   getVerifiedDoctors,
   getPendingDoctors,
   verifyDoctor,
-  rejectDoctor
+  rejectDoctor,
+  getDoctorAppointments,
+  acceptAppointment,
+  rejectAppointment
 } = require("../controllers/doctorController");
 
 const router = express.Router();
@@ -25,6 +28,11 @@ router.get("/", getAllDoctors); // Route to get all doctors(GET /api/doctors)
 
 router.get("/verified", getVerifiedDoctors); // Route to get only verified doctors(GET /api/doctors/verified)
 router.get("/pending", getPendingDoctors); // Route to get pending doctors for admin review(GET /api/doctors/pending)
+
+// Appointment handling routes
+router.get("/:id/appointments", getDoctorAppointments);
+router.put("/:id/appointments/:appointmentId/accept", acceptAppointment);
+router.put("/:id/appointments/:appointmentId/reject", rejectAppointment);
 
 router.get("/:id", getDoctorById); // Route to get single doctor by ID(GET /api/doctors/:id)
 router.put("/:id", updateDoctor); //  Route to update doctor(PUT /api/doctors/:id)

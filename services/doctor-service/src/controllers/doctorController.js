@@ -373,3 +373,140 @@ exports.rejectDoctor = async (req, res) => {
     });
   }
 };
+
+// GET appointments for a doctor from appointment-service
+// GET /api/doctors/:id/appointments
+exports.getDoctorAppointments = async (req, res) => {
+  try {
+    // First check whether doctor exists in doctor-service
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    // Call appointment-service API
+    const response = await fetch(
+      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/doctor/${req.params.id}`
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message: "Failed to fetch appointments from appointment-service",
+      });
+    }
+
+    const appointments = await response.json();
+
+    res.status(200).json({
+      success: true,
+      count: appointments.length,
+      data: appointments,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ACCEPT appointment by updating status in appointment-service
+// PUT /api/doctors/:id/appointments/:appointmentId/accept
+exports.acceptAppointment = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const response = await fetch(
+      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/${req.params.appointmentId}/status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "Confirmed",
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message: result.message || "Failed to accept appointment",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Appointment accepted successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// REJECT appointment by updating status in appointment-service
+// PUT /api/doctors/:id/appointments/:appointmentId/reject
+exports.rejectAppointment = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const response = await fetch(
+      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/${req.params.appointmentId}/status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "Cancelled",
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message: result.message || "Failed to reject appointment",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Appointment rejected successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
