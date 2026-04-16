@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smart-healthcare-config
+  namespace: smart-healthcare
+data:
+  CLIENT_URL: "http://smart-healthcare.local"
+  APP_NAME: "Smart Healthcare"
+
+  # PayHere non-secret settings
+  # raw | base64 | auto
+  PAYHERE_MERCHANT_SECRET_ENCODING: "auto"
+  PAYHERE_SANDBOX: "true"
+  PAYHERE_CHECKOUT_URL: "https://sandbox.payhere.lk/pay/checkout"
+  PAYMENT_RETURN_URL: "http://smart-healthcare.local/payment-success"
+  PAYMENT_CANCEL_URL: "http://smart-healthcare.local/payment-cancel"
+  # Must be publicly reachable for PayHere; change to your tunnel/ingress URL
+  PAYMENT_NOTIFY_URL: "https://YOUR_PUBLIC_URL/api/payments/notify"
