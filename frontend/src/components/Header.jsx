@@ -63,8 +63,9 @@ export default function Header() {
     }
 
     return [
-      { label: "Online Payments", to: "/payments", variant: "secondary" },
-      { label: "Book Appointment", to: "/appointments", variant: "primary" },
+      { label: "Get Started", to: "/", variant: "primary" },
+      { label: "Register as a Doctor", to: "/register?role=doctor", variant: "secondary" },
+      { label: "Login", to: "/login", variant: "ghost" },
     ];
   }, [isAdmin, isDoctor]);
 
@@ -92,13 +93,15 @@ export default function Header() {
 
   const actionButtonClasses = (variant = "secondary") =>
     variant === "primary"
-      ? "inline-flex items-center justify-center rounded-full bg-lime-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-lime-700"
-      : "inline-flex items-center justify-center rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/20";
+      ? "inline-flex items-center justify-center rounded-full bg-gradient-to-r from-lime-600 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-lime-700 hover:to-amber-600"
+      : variant === "ghost"
+        ? "inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900"
+        : "inline-flex items-center justify-center rounded-full border border-lime-200 bg-lime-50 px-4 py-2 text-sm font-semibold text-lime-700 shadow-sm transition hover:border-lime-300 hover:bg-lime-100 hover:text-lime-800";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       {/* Top utility bar */}
-      <div className="hidden w-full bg-gradient-to-r from-lime-600 via-lime-500 to-amber-400 text-white lg:block">
+      <div className="hidden w-full bg-linear-to-r from-lime-600 via-lime-500 to-amber-400 text-white lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 xl:px-8">
           <div className="flex items-center gap-3 text-sm font-medium">
             <span>24/7 Support</span>
@@ -108,17 +111,6 @@ export default function Header() {
             <span>support@healthcare.com</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {quickActions.map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={actionButtonClasses(item.variant)}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -157,7 +149,7 @@ export default function Header() {
                 </div>
 
                 <div className="leading-tight">
-                  <p className="max-w-[180px] truncate text-sm font-semibold text-slate-800">
+                  <p className="max-w-45 truncate text-sm font-semibold text-slate-800">
                     {displayName}
                   </p>
                   <p className="text-xs capitalize text-slate-500">
@@ -174,20 +166,17 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-lime-600 hover:text-lime-700"
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="rounded-full bg-lime-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-lime-700"
-              >
-                Register
-              </Link>
-            </>
+            <div className="flex flex-wrap items-center gap-3">
+              {quickActions.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className={actionButtonClasses(item.variant)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           )}
         </div>
 
@@ -219,7 +208,7 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <div className="mx-auto max-w-7xl space-y-6 px-4 py-5 sm:px-6">
-            <div className="rounded-2xl bg-gradient-to-r from-lime-600 via-lime-500 to-amber-400 p-4 text-white shadow-sm">
+            <div className="rounded-2xl bg-linear-to-r from-lime-600 via-lime-500 to-amber-400 p-4 text-white shadow-sm">
               <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-medium">
                 <span>24/7 Support</span>
                 <span className="text-white/70">•</span>
@@ -235,7 +224,9 @@ export default function Header() {
                     className={
                       item.variant === "primary"
                         ? "rounded-full bg-white px-4 py-2 text-sm font-semibold text-lime-700"
-                        : "rounded-full border border-white/40 px-4 py-2 text-sm font-medium text-white"
+                        : item.variant === "ghost"
+                          ? "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+                          : "rounded-full border border-lime-200 bg-lime-50 px-4 py-2 text-sm font-semibold text-lime-700"
                     }
                   >
                     {item.label}
@@ -274,20 +265,27 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Link
+                    to="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-xl bg-linear-to-r from-lime-600 to-amber-500 px-4 py-3 text-center text-sm font-semibold text-white shadow-sm"
+                  >
+                    Get Started
+                  </Link>
+                  <Link
+                    to="/register?role=doctor"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-xl border border-lime-200 bg-white px-4 py-3 text-center text-sm font-semibold text-lime-700 shadow-sm"
+                  >
+                    Register as a Doctor
+                  </Link>
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-xl border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-700"
+                    className="rounded-xl border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-700 hover:border-lime-600 hover:text-lime-700"
                   >
                     Login
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="rounded-xl bg-lime-600 px-4 py-3 text-center text-sm font-semibold text-white"
-                  >
-                    Register
                   </Link>
                 </div>
               )}
