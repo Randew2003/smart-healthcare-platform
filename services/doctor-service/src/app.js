@@ -1,5 +1,6 @@
 const express = require("express");
 const doctorRoutes = require("./routes/doctorRoutes");
+const prescriptionRoutes = require("./routes/prescriptionRoutes");
 
 const app = express();
 
@@ -10,5 +11,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/doctors/:doctorId/prescriptions", prescriptionRoutes);
 
 module.exports = app;
