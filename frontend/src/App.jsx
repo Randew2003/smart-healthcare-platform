@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import ProtectedRoute from "./components/ProtectedRoute";
 import Appointments from "./pages/Appointments";
-
 
 export default function App() {
   return (

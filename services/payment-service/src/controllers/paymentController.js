@@ -9,22 +9,50 @@ import {
 export async function createPayment(req, res) {
   try {
     const userId = req.user.id;
-    const {
-      appointmentId,
-      fullName,
-      email,
-      phone,
-      amount,
-      currency = "LKR"
-    } = req.body;
 
-    if (!appointmentId || !fullName || !email || !amount) {
+    const appointmentId = String(req.body?.appointmentId || "").trim();
+    const amountNumber = Number(req.body?.amount);
+    const currency = String(req.body?.currency || "LKR").trim() || "LKR";
+
+    const fullName = String(req.body?.fullName || req.user?.fullName || "").trim();
+    const email = String(req.body?.email || req.user?.email || "").trim().toLowerCase();
+    const phone = String(req.body?.phone || req.user?.phone || "").trim();
+
+    if (!appointmentId || !fullName || !email || !Number.isFinite(amountNumber) || amountNumber <= 0) {
       return res.status(400).json({
-        message: "appointmentId, fullName, email, and amount are required."
+        message: "appointmentId, fullName, email, and a valid amount are required."
       });
     }
 
     const orderId = generateOrderId(appointmentId);
+
+    const merchantId = String(process.env.PAYHERE_MERCHANT_ID || "").trim();
+    const merchantSecret = String(process.env.PAYHERE_MERCHANT_SECRET || "").trim();
+
+    const sandboxFlag = String(process.env.PAYHERE_SANDBOX || "true").trim().toLowerCase();
+    const defaultCheckoutUrl = sandboxFlag === "false"
+      ? "https://www.payhere.lk/pay/checkout"
+      : "https://sandbox.payhere.lk/pay/checkout";
+
+    const checkoutUrl = String(process.env.PAYHERE_CHECKOUT_URL || defaultCheckoutUrl).trim();
+
+    const forwardedProto = String(req.get("x-forwarded-proto") || "").split(",")[0].trim();
+    const forwardedHost = String(req.get("x-forwarded-host") || "").split(",")[0].trim();
+    const host = forwardedHost || String(req.get("host") || "").split(",")[0].trim();
+    const proto = forwardedProto || req.protocol;
+    const origin = host ? `${proto}://${host}` : "";
+
+    const returnUrl = String(process.env.PAYMENT_RETURN_URL || (origin ? `${origin}/payment-success` : "")).trim();
+    const cancelUrl = String(process.env.PAYMENT_CANCEL_URL || (origin ? `${origin}/payment-cancel` : "")).trim();
+
+    let notifyUrl = String(process.env.PAYMENT_NOTIFY_URL || (origin ? `${origin}/api/payments/notify` : "")).trim();
+    if (notifyUrl.includes("YOUR_PUBLIC_URL") && origin) {
+      notifyUrl = `${origin}/api/payments/notify`;
+    }
+
+    if (!merchantId || !merchantSecret || !checkoutUrl || !returnUrl || !cancelUrl || !notifyUrl) {
+      return res.status(500).json({ message: "Missing PayHere configuration." });
+    }
 
     const payment = await Payment.create({
       userId,
@@ -32,24 +60,12 @@ export async function createPayment(req, res) {
       orderId,
       fullName,
       email,
-      phone: phone || "",
-      amount,
+      phone,
+      amount: amountNumber,
       currency,
       status: "PENDING",
       paymentMethod: "PayHere"
     });
-
-    const merchantId = String(process.env.PAYHERE_MERCHANT_ID || "").trim();
-    const merchantSecret = String(process.env.PAYHERE_MERCHANT_SECRET || "").trim();
-    const checkoutUrl = String(process.env.PAYHERE_CHECKOUT_URL || "").trim();
-
-    const returnUrl = String(process.env.PAYMENT_RETURN_URL || "").trim();
-    const cancelUrl = String(process.env.PAYMENT_CANCEL_URL || "").trim();
-    const notifyUrl = String(process.env.PAYMENT_NOTIFY_URL || "").trim();
-
-    if (!merchantId || !merchantSecret || !checkoutUrl || !returnUrl || !cancelUrl || !notifyUrl) {
-      return res.status(500).json({ message: "Missing PayHere configuration." });
-    }
 
     const hash = generatePayHereHash({
       merchantId,
@@ -75,7 +91,7 @@ export async function createPayment(req, res) {
         first_name: fullName,
         last_name: "",
         email,
-        phone: phone || "",
+        phone,
         address: "N/A",
         city: "Colombo",
         country: "Sri Lanka",
@@ -139,8 +155,6 @@ export async function markCancelled(req, res) {
 
 export async function payhereNotify(req, res) {
   try {
-    console.log("PAYHERE CALLBACK:", req.body);
-
     const {
       merchant_id,
       order_id,
@@ -155,15 +169,30 @@ export async function payhereNotify(req, res) {
       captured_amount
     } = req.body;
 
-    const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
+    const merchantSecret = String(process.env.PAYHERE_MERCHANT_SECRET || "").trim();
+
+    if (!merchantSecret) {
+      return res.status(500).send("Missing PayHere merchant secret");
+    }
+
+    const merchantId = String(merchant_id || "").trim();
+    const orderId = String(order_id || "").trim();
+    const payhereAmount = String(payhere_amount || "").trim();
+    const payhereCurrency = String(payhere_currency || "").trim();
+    const statusCode = String(status_code || "").trim();
+    const sig = String(md5sig || "").trim();
+
+    if (!merchantId || !orderId || !payhereAmount || !payhereCurrency || !statusCode || !sig) {
+      return res.status(400).send("Invalid notification payload");
+    }
 
     const isValid = verifyPayHereNotification({
-      merchantId: merchant_id,
-      orderId: order_id,
-      payhereAmount: payhere_amount,
-      payhereCurrency: payhere_currency,
-      statusCode: status_code,
-      md5sig,
+      merchantId,
+      orderId,
+      payhereAmount,
+      payhereCurrency,
+      statusCode,
+      md5sig: sig,
       merchantSecret
     });
 
@@ -172,26 +201,26 @@ export async function payhereNotify(req, res) {
       return res.status(400).send("Invalid signature");
     }
 
-    const payment = await Payment.findOne({ orderId: order_id });
+    const payment = await Payment.findOne({ orderId });
 
     if (!payment) {
       return res.status(404).send("Payment not found");
     }
 
-    payment.payhere.paymentId = payment_id || "";
-    payment.payhere.statusCode = status_code || "";
-    payment.payhere.md5sig = md5sig || "";
-    payment.payhere.method = method || "";
-    payment.payhere.cardHolderName = card_holder_name || "";
-    payment.payhere.cardNo = card_no || "";
-    payment.payhere.capturedAmount = captured_amount || "";
-    payment.payhere.currency = payhere_currency || "";
+    payment.payhere.paymentId = String(payment_id || "");
+    payment.payhere.statusCode = statusCode;
+    payment.payhere.md5sig = sig;
+    payment.payhere.method = String(method || "");
+    payment.payhere.cardHolderName = String(card_holder_name || "");
+    payment.payhere.cardNo = String(card_no || "");
+    payment.payhere.capturedAmount = String(captured_amount || "");
+    payment.payhere.currency = payhereCurrency;
 
-    if (status_code === "2") {
+    if (statusCode === "2") {
       payment.status = "SUCCESS";
-    } else if (status_code === "-1") {
+    } else if (statusCode === "-1") {
       payment.status = "FAILED";
-    } else if (status_code === "0") {
+    } else if (statusCode === "0") {
       payment.status = "PENDING";
     }
 

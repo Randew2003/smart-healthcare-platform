@@ -677,8 +677,14 @@ exports.getPatientProfile = async (req, res) => {
       });
     }
 
+    const headers = {};
+    if (req.headers.authorization) {
+      headers.Authorization = req.headers.authorization;
+    }
+
     const response = await fetch(
-      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/profile`
+      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/profile`,
+      { headers }
     );
 
     const result = await response.json();
@@ -716,8 +722,14 @@ exports.getPatientMedicalHistory = async (req, res) => {
       });
     }
 
+    const headers = {};
+    if (req.headers.authorization) {
+      headers.Authorization = req.headers.authorization;
+    }
+
     const response = await fetch(
-      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/medical-history`
+      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/medical-history`,
+      { headers }
     );
 
     const result = await response.json();
@@ -755,8 +767,14 @@ exports.getPatientReports = async (req, res) => {
       });
     }
 
+    const headers = {};
+    if (req.headers.authorization) {
+      headers.Authorization = req.headers.authorization;
+    }
+
     const response = await fetch(
-      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/reports`
+      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/reports`,
+      { headers }
     );
 
     const result = await response.json();
@@ -794,8 +812,14 @@ exports.getPatientPrescriptions = async (req, res) => {
       });
     }
 
+    const headers = {};
+    if (req.headers.authorization) {
+      headers.Authorization = req.headers.authorization;
+    }
+
     const response = await fetch(
-      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/prescriptions`
+      `${process.env.PATIENT_SERVICE_URL}/api/patients/doctor-view/${patientId}/prescriptions`,
+      { headers }
     );
 
     const result = await response.json();
