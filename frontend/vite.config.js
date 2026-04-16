@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      "/api/auth": { target: "http://localhost:4000", changeOrigin: true },
-      "/api/admin": { target: "http://localhost:4000", changeOrigin: true },
+      "/api/auth": { target: "http://localhost:4001", changeOrigin: true },
+      "/api/admin": { target: "http://localhost:4001", changeOrigin: true },
 
       "/api/appointments": { target: "http://localhost:4001", changeOrigin: true },
 
