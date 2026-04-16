@@ -7,6 +7,11 @@ export function getToken() {
   return localStorage.getItem("token");
 }
 
+export function setAuth({ token, user }) {
+  if (token) localStorage.setItem("token", token);
+  if (user) localStorage.setItem("user", JSON.stringify(user));
+}
+
 export function isLoggedIn() {
   return !!getToken();
 }

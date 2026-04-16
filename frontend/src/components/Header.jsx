@@ -1,10 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { getUser, isLoggedIn, logout } from "../utils/auth";
 import logo from "../assets/logo02.png";
 
 export default function Header() {
   const user = getUser();
   const navigate = useNavigate();
+  const authed = isLoggedIn();
+  const role = user?.role;
+  const isAdmin = authed && role === "admin";
+  const isDoctor = authed && role === "doctor";
+
+  const navLinkStyle = ({ isActive }) => ({
+    ...styles.navLink,
+    borderBottom: isActive ? "2px solid #80c342" : "2px solid transparent",
+    paddingBottom: 8,
+    color: isActive ? "#2f6b14" : styles.navLink.color
+  });
 
   const handleLogout = () => {
     logout();
@@ -21,8 +32,64 @@ export default function Header() {
         </div>
 
         <div style={styles.topRight}>
-          <button style={styles.ghostButton}>Online Payments</button>
-          <button style={styles.primaryButton}>Book Appointment</button>
+          {isAdmin ? (
+            <>
+              <Link
+                to="/admin"
+                style={{ ...styles.ghostButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/admin/appointments"
+                style={{ ...styles.ghostButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Appointments
+              </Link>
+              <Link
+                to="/admin/users"
+                style={{ ...styles.ghostButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Users
+              </Link>
+              <Link
+                to="/admin/doctors"
+                style={{ ...styles.primaryButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Verify Doctors
+              </Link>
+            </>
+          ) : isDoctor ? (
+            <>
+              <Link
+                to="/telemedicine"
+                style={{ ...styles.ghostButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Telemedicine
+              </Link>
+              <Link
+                to="/appointments"
+                style={{ ...styles.primaryButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Appointments
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/payments"
+                style={{ ...styles.ghostButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Online Payments
+              </Link>
+              <Link
+                to="/appointments"
+                style={{ ...styles.primaryButton, textDecoration: "none", display: "inline-block" }}
+              >
+                Book Appointment
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -30,17 +97,39 @@ export default function Header() {
         <img src={logo} alt="logo" style={styles.logo} />
 
         <nav style={styles.nav}>
-          <Link to="/" style={styles.navLink}>Home</Link>
-          <Link to="/appointments" style={styles.navLink}>Appointments</Link>
-          <Link to="/telemedicine" style={styles.navLink}>Telemedicine</Link>
-          <Link to="/services" style={styles.navLink}>Services</Link>
-          <Link to="/contact" style={styles.navLink}>Contact</Link>
+          {!isAdmin ? <NavLink to="/" end style={navLinkStyle}>Home</NavLink> : null}
+
+          {isAdmin ? (
+            <>
+              <NavLink to="/admin" end style={navLinkStyle}>Dashboard</NavLink>
+              <NavLink to="/admin/appointments" style={navLinkStyle}>Appointments</NavLink>
+              <NavLink to="/admin/users" style={navLinkStyle}>Users</NavLink>
+              <NavLink to="/admin/doctors" style={navLinkStyle}>Pending Doctors</NavLink>
+            </>
+          ) : isDoctor ? (
+            <>
+              <NavLink to="/appointments" style={navLinkStyle}>Appointments</NavLink>
+              <NavLink to="/telemedicine" style={navLinkStyle}>Telemedicine</NavLink>
+              <NavLink to="/services" style={navLinkStyle}>Services</NavLink>
+              <NavLink to="/contact" style={navLinkStyle}>Contact</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/doctors" style={navLinkStyle}>Doctors</NavLink>
+              <NavLink to="/appointments" style={navLinkStyle}>Appointments</NavLink>
+              <NavLink to="/payments" style={navLinkStyle}>Payments</NavLink>
+              <NavLink to="/services" style={navLinkStyle}>Services</NavLink>
+              <NavLink to="/contact" style={navLinkStyle}>Contact</NavLink>
+            </>
+          )}
         </nav>
 
         <div style={styles.actions}>
-          {isLoggedIn() ? (
+          {authed ? (
             <>
-              <span style={styles.userText}>{user?.fullName}</span>
+              <span style={styles.userText}>
+                {user?.fullName || user?.email || "User"}{role ? ` (${role})` : ""}
+              </span>
               <button onClick={handleLogout} style={styles.logoutButton}>
                 Logout
               </button>
@@ -140,6 +229,7 @@ const styles = {
   },
 
   navLink: {
+    display: "inline-block",
     textDecoration: "none",
     color: "#2f2f2f",
     fontSize: "13px",
