@@ -22,6 +22,9 @@ export default function Footer() {
               <h3 style={styles.heading}>QUICK LINKS</h3>
               <ul style={styles.list}>
                 <li><Link to="/" style={styles.link}>Home</Link></li>
+                <li><Link to="/doctors" style={styles.link}>Doctors</Link></li>
+                <li><Link to="/services" style={styles.link}>Services</Link></li>
+                <li><Link to="/contact" style={styles.link}>Contact</Link></li>
                 <li><Link to="/login" style={styles.link}>Login</Link></li>
                 <li><Link to="/register" style={styles.link}>Register</Link></li>
               </ul>
@@ -30,10 +33,10 @@ export default function Footer() {
             <div>
               <h3 style={styles.heading}>SERVICES</h3>
               <ul style={styles.list}>
-                <li>Appointments</li>
-                <li>Telemedicine</li>
-                <li>Medical Records</li>
-              
+                <li><Link to="/appointments" style={styles.link}>Appointments</Link></li>
+                <li><Link to="/telemedicine" style={styles.link}>Telemedicine</Link></li>
+                <li><Link to="/payments" style={styles.link}>Payments</Link></li>
+                <li><Link to="/profile" style={styles.link}>Medical Records</Link></li>
               </ul>
             </div>
 
