@@ -12,11 +12,10 @@ services:
     build: ./services/auth-admin-service
     container_name: auth-admin-service
     restart: unless-stopped
-    env_file:
-      - ./services/auth-admin-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/auth_admin_db?retryWrites=true&w=majority&appName=Cluster0"
       MONGODB_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/auth_admin_db?retryWrites=true&w=majority&appName=Cluster0"
+      JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4000:4000"
     depends_on:
@@ -26,8 +25,6 @@ services:
     build: ./services/appointment-service
     container_name: appointment-service
     restart: unless-stopped
-    env_file:
-      - ./services/appointment-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/appointment_db?retryWrites=true&w=majority&appName=Cluster0"
     ports:
@@ -39,8 +36,6 @@ services:
     build: ./services/notification-service
     container_name: notification-service
     restart: unless-stopped
-    env_file:
-      - ./services/notification-service/.env
     ports:
       - "4002:4002"
 
@@ -52,6 +47,7 @@ services:
       - ./services/patient-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/patientdb?retryWrites=true&w=majority&appName=Cluster0"
+      JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4003:4003"
     depends_on:
@@ -65,6 +61,7 @@ services:
       - ./services/payment-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/paymentdb?retryWrites=true&w=majority&appName=Cluster0"
+      JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4004:4004"
     depends_on:
@@ -74,11 +71,11 @@ services:
     build: ./services/doctor-service
     container_name: doctor-service
     restart: unless-stopped
-    env_file:
-      - ./services/doctor-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/doctor_db?retryWrites=true&w=majority&appName=Cluster0"
       SEED_SAMPLE_DATA: "false"
+      APPOINTMENT_SERVICE_URL: "http://appointment-service:4001"
+      PATIENT_SERVICE_URL: "http://patient-service:4003"
     ports:
       - "4005:4005"
     depends_on:
@@ -88,8 +85,6 @@ services:
     build: ./services/telemedicine-service
     container_name: telemedicine-service
     restart: unless-stopped
-    env_file:
-      - ./services/telemedicine-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/telemedicine_db?retryWrites=true&w=majority&appName=Cluster0"
     ports:
