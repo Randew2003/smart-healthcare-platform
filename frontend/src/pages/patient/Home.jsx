@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import MainLayout from "../layouts/MainLayout";
+import MainLayout from "../../layouts/MainLayout";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-import banner1 from "../assets/banner1.png";
-import banner2 from "../assets/banner2.png";
-import banner3 from "../assets/banner3.png";
-import banner4 from "../assets/banner4.png";
+import banner1 from "../../assets/banner1.png";
+import banner2 from "../../assets/banner2.png";
+import banner3 from "../../assets/banner3.png";
+import banner4 from "../../assets/banner4.png";
 
 const banners = [
   {
@@ -112,7 +112,7 @@ const steps = [
   }
 ];
 
-export default function Home() {
+function LegacyHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -923,3 +923,156 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.2)"
   }
 };
+
+export default function Home() {
+  return (
+    <MainLayout>
+      <div className="bg-[#f8fbf5]">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 lg:px-[170px]">
+          <div className="grid items-center gap-8 lg:grid-cols-2">
+            <div>
+              <div className="inline-flex items-center rounded-full border border-[#80c342]/30 bg-[#80c342]/10 px-4 py-2 text-xs font-extrabold text-[#2f6b14]">
+                {banners[0].badge}
+              </div>
+
+              <h1 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                Smarter Healthcare for modern families
+              </h1>
+
+              <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+                {banners[0].description}
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  to="/appointments"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-5 py-3 text-sm font-black text-white hover:bg-[#60a421]"
+                >
+                  Book appointment
+                </Link>
+                <Link
+                  to="/doctors"
+                  className="inline-flex items-center justify-center rounded-xl border border-[#80c342]/30 bg-white px-5 py-3 text-sm font-black text-[#2f6b14] hover:bg-[#80c342]/10"
+                >
+                  Browse doctors
+                </Link>
+              </div>
+
+              <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {stats.map((s) => (
+                  <div key={s.label} className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-lg font-black text-[#2f6b14]">{s.number}</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-600">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+              <img
+                src={banner1}
+                alt="Smart Healthcare"
+                className="h-72 w-full rounded-2xl object-cover sm:h-80"
+              />
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#fbb033]/35 bg-[#fbb033]/10 p-4">
+                  <div className="text-xs font-extrabold text-[#7a4d00]">Verified Doctors</div>
+                  <div className="mt-1 text-sm text-slate-700">
+                    Find trusted specialists across many categories.
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-[#80c342]/30 bg-[#80c342]/10 p-4">
+                  <div className="text-xs font-extrabold text-[#2f6b14]">Secure & Simple</div>
+                  <div className="mt-1 text-sm text-slate-700">
+                    Profile, appointments, and payments in one place.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-6xl px-4 pb-12 lg:px-[170px]">
+          <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-xl font-black text-slate-900">Core services</h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Complete healthcare solutions in one modern platform.
+                </p>
+              </div>
+              <Link
+                to="/services"
+                className="rounded-xl border border-[#80c342]/30 bg-[#80c342]/10 px-4 py-2 text-sm font-black text-[#2f6b14]"
+              >
+                View all
+              </Link>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {services.slice(0, 4).map((s) => (
+                <div key={s.title} className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="text-base font-black text-slate-900">{s.title}</div>
+                  <div className="mt-1 text-sm text-slate-600">{s.text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-black text-slate-900">Popular specialties</h2>
+              <p className="mt-1 text-sm text-slate-600">Choose the right specialist for your needs.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {specialties.map((sp) => (
+                  <span
+                    key={sp}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-extrabold text-slate-700"
+                  >
+                    {sp}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-5">
+                <Link
+                  to="/doctors"
+                  className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421]"
+                >
+                  Find doctors
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/5 bg-[#2f6b14] p-6 shadow-sm">
+              <h2 className="text-xl font-black text-white">How it works</h2>
+              <p className="mt-1 text-sm text-white/85">Start in four simple steps.</p>
+              <div className="mt-4 grid gap-3">
+                {steps.map((st) => (
+                  <div key={st.no} className="rounded-2xl border border-white/15 bg-white/10 p-4">
+                    <div className="text-xs font-extrabold text-[#ffbe2c]">Step {st.no}</div>
+                    <div className="mt-1 text-sm font-black text-white">{st.title}</div>
+                    <div className="mt-1 text-sm text-white/85">{st.text}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Link
+                  to="/register"
+                  className="rounded-xl bg-[#ffbe2c] px-4 py-2 text-sm font-black text-[#20301a] hover:opacity-90"
+                >
+                  Create account
+                </Link>
+                <Link
+                  to="/appointments"
+                  className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white"
+                >
+                  Book now
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
