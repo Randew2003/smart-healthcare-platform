@@ -14,6 +14,10 @@ import PaymentSuccess from "./pages/patient/PaymentSuccess";
 import PaymentCancel from "./pages/patient/PaymentCancel";
 import NotFound from "./pages/patient/NotFound";
 
+import Login from "./pages/auth/Login";
+import PatientRegister from "./pages/auth/PatientRegister";
+import DoctorRegister from "./pages/auth/DoctorRegister";
+
 import AdminRegister from "./pages/admin/AdminRegister";
 import AdminLogin from "./pages/admin/AdminLogin";
 
@@ -30,6 +34,10 @@ export default function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/telemedicine" element={<Telemedicine />} />
+
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<PatientRegister />} />
+          <Route path="/register/doctor" element={<DoctorRegister />} />
 
           {/* Admin pages */}
           <Route path="/admin/register" element={<AdminRegister />} />

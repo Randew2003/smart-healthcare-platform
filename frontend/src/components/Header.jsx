@@ -63,8 +63,8 @@ export default function Header() {
     }
 
     return [
-      { label: "Get Started", to: "/", variant: "primary" },
-      { label: "Register as a Doctor", to: "/register?role=doctor", variant: "secondary" },
+      { label: "Get Started", to: "/register", variant: "primary" },
+      { label: "Register as a Doctor", to: "/register/doctor", variant: "secondary" },
       { label: "Login", to: "/login", variant: "ghost" },
     ];
   }, [isAdmin, isDoctor]);
