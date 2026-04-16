@@ -8,7 +8,7 @@ export default defineConfig({
       "/api/auth": { target: "http://localhost:4000", changeOrigin: true },
       "/api/admin": { target: "http://localhost:4000", changeOrigin: true },
 
-      "/appointments": { target: "http://localhost:4001", changeOrigin: true },
+      
 
       "/api/notifications": { target: "http://localhost:4002", changeOrigin: true },
       "/api/patients": { target: "http://localhost:4003", changeOrigin: true },

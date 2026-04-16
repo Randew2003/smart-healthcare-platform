@@ -17,6 +17,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminPendingDoctors from "./pages/admin/AdminPendingDoctors";
 import AdminAppointments from "./pages/admin/AdminAppointments";
+import BookAppointment from "./pages/appointments/BookAppointment";
+import MyAppointments from "./pages/appointments/MyAppointments";
 
 export default function App() {
   return (
@@ -32,7 +34,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
 
         <Route element={<ProtectedRoute roles={["patient", "doctor"]} />}>
-          <Route path="/appointments" element={<Appointments />} />
+          <Route path="/appointments" element={<MyAppointments />} />
+          <Route path="/book-appointment" element={<BookAppointment />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
 

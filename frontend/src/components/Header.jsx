@@ -83,7 +83,7 @@ export default function Header() {
                 Online Payments
               </Link>
               <Link
-                to="/appointments"
+                to="/book-appointment"
                 style={{ ...styles.primaryButton, textDecoration: "none", display: "inline-block" }}
               >
                 Book Appointment
