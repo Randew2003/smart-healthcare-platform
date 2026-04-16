@@ -39,8 +39,17 @@ export async function createPayment(req, res) {
       paymentMethod: "PayHere"
     });
 
-    const merchantId = process.env.PAYHERE_MERCHANT_ID;
-    const merchantSecret = process.env.PAYHERE_MERCHANT_SECRET;
+    const merchantId = String(process.env.PAYHERE_MERCHANT_ID || "").trim();
+    const merchantSecret = String(process.env.PAYHERE_MERCHANT_SECRET || "").trim();
+    const checkoutUrl = String(process.env.PAYHERE_CHECKOUT_URL || "").trim();
+
+    const returnUrl = String(process.env.PAYMENT_RETURN_URL || "").trim();
+    const cancelUrl = String(process.env.PAYMENT_CANCEL_URL || "").trim();
+    const notifyUrl = String(process.env.PAYMENT_NOTIFY_URL || "").trim();
+
+    if (!merchantId || !merchantSecret || !checkoutUrl || !returnUrl || !cancelUrl || !notifyUrl) {
+      return res.status(500).json({ message: "Missing PayHere configuration." });
+    }
 
     const hash = generatePayHereHash({
       merchantId,
@@ -54,11 +63,11 @@ export async function createPayment(req, res) {
       message: "Payment created successfully.",
       payment,
       payhere: {
-        checkoutUrl: process.env.PAYHERE_CHECKOUT_URL,
+        checkoutUrl,
         merchant_id: merchantId,
-        return_url: process.env.PAYMENT_RETURN_URL,
-        cancel_url: process.env.PAYMENT_CANCEL_URL,
-        notify_url: process.env.PAYMENT_NOTIFY_URL,
+        return_url: returnUrl,
+        cancel_url: cancelUrl,
+        notify_url: notifyUrl,
         order_id: payment.orderId,
         items: `Doctor Appointment Payment - ${appointmentId}`,
         currency: payment.currency,
