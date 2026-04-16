@@ -1,9 +1,11 @@
 import Appointment from '../models/appointmentModel.js';
+import axios from "axios";
+
 
 // Create appointment
 export const createAppointment = async (req, res) => {
   try {
-    const { patientId, doctorId, date, time } = req.body;
+    const { patientId, doctorId, date, time, patientEmail, patientPhone } = req.body;
 
     // Basic validation
     if (!patientId || !doctorId || !date || !time) {
@@ -33,6 +35,31 @@ export const createAppointment = async (req, res) => {
     appointment.meetingLink = `https://meet.jit.si/appointment-${appointment._id}`;
 
     await appointment.save();
+
+    // 🔥 FETCH DOCTOR DETAILS
+    let doctorData = {};
+    try {
+      const doctorRes = await axios.get(`http://localhost:4005/api/doctors/${doctorId}`);
+      doctorData = doctorRes.data.data;
+    } catch (err) {
+      console.error("Doctor fetch failed:", err.message);
+    }
+
+    // 🔔 SEND NOTIFICATION (NON-BLOCKING)
+    axios.post("http://localhost:4002/api/notifications/event", {
+      type: "APPOINTMENT_BOOKED",
+      patient: {
+        email: patientEmail,
+        phone: patientPhone
+      },
+      doctor: {
+        email: doctorData?.email,
+        phone: doctorData?.phone
+      },
+      appointmentTime: `${date} ${time}`
+    }).catch(err => {
+      console.error("Notification failed:", err.message);
+    });
 
     res.status(201).json({
       message: 'Appointment created successfully',

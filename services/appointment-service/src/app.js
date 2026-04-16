@@ -14,6 +14,6 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/appointments', appointmentRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 export default app;
