@@ -39,14 +39,14 @@ export const createAppointment = async (req, res) => {
     // 🔥 FETCH DOCTOR DETAILS
     let doctorData = {};
     try {
-      const doctorRes = await axios.get(`http://localhost:4005/api/doctors/${doctorId}`);
+      const doctorRes = await axios.get(`http://doctor-service:4005/api/doctors/${doctorId}`);
       doctorData = doctorRes.data.data;
     } catch (err) {
       console.error("Doctor fetch failed:", err.message);
     }
 
     // 🔔 SEND NOTIFICATION (NON-BLOCKING)
-    axios.post("http://localhost:4002/api/notifications/event", {
+    axios.post("http://notification-service:4002/api/notifications/event", {
       type: "APPOINTMENT_BOOKED",
       patient: {
         email: patientEmail,
@@ -79,7 +79,36 @@ export const getAppointmentsByPatient = async (req, res) => {
 
     const appointments = await Appointment.find({ patientId });
 
-    res.json(appointments);
+    // 🔥 Enrich with doctor data
+    const enrichedAppointments = await Promise.all(
+      appointments.map(async (appt) => {
+        try {
+          const doctorRes = await axios.get(
+            `http://doctor-service:4005/api/doctors/${appt.doctorId}`
+          );
+
+          const doctor = doctorRes.data.data;
+
+          return {
+            ...appt.toObject(),
+            doctor: {
+              name: doctor?.name,
+              specialization: doctor?.specialization,
+              email: doctor?.email
+            }
+          };
+        } catch (err) {
+          console.error("Doctor fetch failed:", err.message);
+
+          return {
+            ...appt.toObject(),
+            doctor: null
+          };
+        }
+      })
+    );
+
+    res.json(enrichedAppointments);
 
   } catch (error) {
     res.status(500).json({ message: error.message });

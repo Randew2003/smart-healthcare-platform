@@ -1,5 +1,6 @@
 import { sendEmail } from "../services/emailService.js";
 import { sendSMS } from "../services/smsService.js";
+import { formatPhone } from "../utils/phoneUtils.js";
 
 export const handleNotificationEvent = async (req, res) => {
   try {
@@ -36,11 +37,11 @@ export const handleNotificationEvent = async (req, res) => {
 
     // 📱 SMS
     if (patient?.phone) {
-      await sendSMS(patient.phone, message);
+      await sendSMS(formatPhone(patient.phone), message);
     }
 
     if (doctor?.phone) {
-      await sendSMS(doctor.phone, message);
+      await sendSMS(formatPhone(doctor.phone), message);
     }
 
     res.status(200).json({
