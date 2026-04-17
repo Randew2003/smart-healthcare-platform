@@ -168,14 +168,24 @@ export async function forgotPassword(req, res) {
     const user = await User.findOne({ email: normalizedEmail });
 
     if (user) {
+      const expiresMinutesRaw = Number(process.env.OTP_EXPIRES_MIN);
+      const expiresMinutes = Number.isFinite(expiresMinutesRaw) && expiresMinutesRaw > 0
+        ? expiresMinutesRaw
+        : 15;
+
       const otp = String(Math.floor(100000 + Math.random() * 900000));
       const tokenHash = crypto.createHash("sha256").update(otp).digest("hex");
 
       user.resetPasswordToken = tokenHash;
-      user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+      user.resetPasswordExpires = new Date(Date.now() + expiresMinutes * 60 * 1000);
       await user.save();
 
-      await sendPasswordResetOtpEmail({ to: user.email, fullName: user.fullName, otp });
+      await sendPasswordResetOtpEmail({
+        to: user.email,
+        fullName: user.fullName,
+        otp,
+        expiresMinutes
+      });
     }
 
     return res.json({ message: "If an account exists for this email, a reset OTP has been sent." });

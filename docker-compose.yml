@@ -12,6 +12,8 @@ services:
     build: ./services/auth-admin-service
     container_name: auth-admin-service
     restart: unless-stopped
+    env_file:
+      - ./services/auth-admin-service/.env
     environment:
       MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/auth_admin_db?appName=Cluster0"
       MONGODB_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/auth_admin_db?appName=Cluster0"
