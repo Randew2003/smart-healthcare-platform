@@ -20,8 +20,8 @@ import DoctorRegister from "./pages/auth/DoctorRegister";
 
 import AdminRegister from "./pages/admin/AdminRegister";
 import AdminLogin from "./pages/admin/AdminLogin";
-
-import Appointments from "./pages/Appointments";
+import BookAppointment from "./pages/appointments/BookAppointment";
+import MyAppointments from "./pages/appointments/MyAppointments";
 
 export default function App() {
   return (
@@ -50,11 +50,13 @@ export default function App() {
           <Route element={<ProtectedRoute roles={["patient"]} />}>
             <Route path="/payments" element={<Payments />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/book-appointment" element={<BookAppointment />} />
+            <Route path="/my-appointments" element={<MyAppointments />} />
           </Route>
 
           {/* Shared */}
           <Route element={<ProtectedRoute roles={["patient", "doctor"]} />}>
-            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/appointments" element={<MyAppointments />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

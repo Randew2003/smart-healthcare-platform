@@ -1,27 +1,32 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import MainLayout from "./../../layouts/MainLayout";
+import { api } from "./../../utils/api";
+import { getUser, isLoggedIn } from "./../../utils/auth";
+import { submitPayHereCheckout } from "./../../utils/payhereCheckout";
 
 export default function BookAppointment() {
+  const user = getUser();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    patientId: "PATIENT123",
+    patientId: user?.id || user?._id || "PATIENT123",
     doctorId: "",
     date: "",
     time: "",
     notes: "",
-    patientEmail: "",
-    patientPhone: ""
+    patientEmail: user?.email || "",
+    patientPhone: user?.phone || ""
   });
+
+  const appointmentFee = 1500;
 
   // 🔥 fetch doctors (from doctor service)
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axios.get("http://localhost:4005/api/doctors");
+        const res = await api.get("/api/doctors");
         setDoctors(res.data.data || []);
       } catch (err) {
         console.log("Doctor fetch error:", err.message);
@@ -41,29 +46,32 @@ export default function BookAppointment() {
       return;
     }
 
+    if (!isLoggedIn()) {
+      alert("Please login to book and pay for your appointment.");
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      const res = await axios.post(
-        "http://localhost:4001/api/appointments",
-        form
-      );
+      const appointmentResponse = await api.post("/api/appointments", form);
+      const appointment = appointmentResponse.data?.appointment || appointmentResponse.data;
 
-      alert("🎉 Appointment booked successfully!");
+      if (!appointment?._id) {
+        throw new Error("Appointment creation failed.");
+      }
 
-      console.log("Response:", res.data);
-
-      setForm({
-        patientId: "PATIENT123",
-        doctorId: "",
-        date: "",
-        time: "",
-        notes: "",
-        patientEmail: "",
-        patientPhone: ""
+      const paymentResponse = await api.post("/api/payments", {
+        appointmentId: appointment._id,
+        amount: appointmentFee,
+        fullName: user?.fullName || "",
+        email: form.patientEmail,
+        phone: form.patientPhone
       });
+
+      submitPayHereCheckout(paymentResponse.data?.payhere);
     } catch (err) {
-      alert(err.response?.data?.message || "Booking failed");
+      alert(err.response?.data?.message || err.message || "Booking failed");
     } finally {
       setSubmitting(false);
     }
@@ -167,15 +175,21 @@ export default function BookAppointment() {
           </div>
         </div>
 
-        {/* BUTTON */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className={`${submitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"} inline-flex w-full sm:w-auto items-center justify-center rounded-[12px] px-4 py-3 text-sm font-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] bg-gradient-to-r from-[#80c342] to-[#fbb033]`}
-          >
-            {submitting ? "Booking..." : "Confirm Appointment"}
-          </button>
+        <div className="mt-8 grid gap-4">
+          <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+            Consultation fee: <span className="font-semibold text-slate-900">LKR {appointmentFee}</span>
+            <div className="mt-2">After booking, you will be redirected to PayHere to complete the payment.</div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className={`${submitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"} inline-flex w-full sm:w-auto items-center justify-center rounded-[12px] px-4 py-3 text-sm font-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] bg-gradient-to-r from-[#80c342] to-[#fbb033]`}
+            >
+              {submitting ? "Processing payment..." : "Book & Pay Now"}
+            </button>
+          </div>
         </div>
       </div>
     </MainLayout>

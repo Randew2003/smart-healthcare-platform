@@ -17,7 +17,12 @@ export default function MyAppointments() {
     setError("");
 
     try {
-      const { data } = await api.get(`/api/appointments/patient/${user?.id || user?._id || "PATIENT123"}`);
+      const userId = user?.id || user?._id || "UNKNOWN_USER";
+      const endpoint = user?.role === "doctor"
+        ? `/api/appointments/doctor/${encodeURIComponent(userId)}`
+        : `/api/appointments/patient/${encodeURIComponent(userId)}`;
+
+      const { data } = await api.get(endpoint);
       setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load appointments.");
@@ -35,8 +40,12 @@ export default function MyAppointments() {
     <MainLayout>
       <div className="px-4 pb-16 max-w-[1200px] mx-auto">
         <div className="bg-[linear-gradient(135deg,rgba(128,195,66,0.16),rgba(251,176,51,0.14))] border border-[rgba(128,195,66,0.15)] rounded-[18px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-          <h2 className="m-0 text-2xl text-slate-900">My Appointments</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">View and manage your scheduled appointments.</p>
+          <h2 className="m-0 text-2xl text-slate-900">{user?.role === "doctor" ? "My Schedule" : "My Appointments"}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            {user?.role === "doctor"
+              ? "Review your upcoming consultations and manage your schedule."
+              : "View and manage your scheduled appointments."}
+          </p>
         </div>
 
         {!isLoggedIn() ? (
@@ -48,13 +57,17 @@ export default function MyAppointments() {
         <div className="mt-4 grid gap-4">
           <div className="bg-white rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)] p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
-              <h3 className="m-0 text-base font-semibold text-slate-900">My Appointments</h3>
-              <Link
-                to="/book-appointment"
-                className="inline-block rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
-              >
-                Book New Appointment
-              </Link>
+              <h3 className="m-0 text-base font-semibold text-slate-900">
+                {user?.role === "doctor" ? "Upcoming Consultations" : "My Appointments"}
+              </h3>
+              {user?.role !== "doctor" ? (
+                <Link
+                  to="/book-appointment"
+                  className="inline-block rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
+                >
+                  Book New Appointment
+                </Link>
+              ) : null}
             </div>
 
             {loading ? <div className="text-slate-600 text-sm">Loading...</div> : null}
@@ -76,8 +89,14 @@ export default function MyAppointments() {
 
               {!loading && appointments.length === 0 ? (
                 <div className="text-center p-10">
-                  <h4 className="m-0 text-lg font-semibold text-slate-900 mb-2">No Appointments Yet</h4>
-                  <p className="m-0 text-sm leading-6 text-slate-600">You haven't booked any appointments. Start by scheduling your first visit with a doctor.</p>
+                  <h4 className="m-0 text-lg font-semibold text-slate-900 mb-2">
+                    {user?.role === "doctor" ? "No appointments scheduled." : "No Appointments Yet"}
+                  </h4>
+                  <p className="m-0 text-sm leading-6 text-slate-600">
+                    {user?.role === "doctor"
+                      ? "You do not have any scheduled consultations yet. Check back later or ask patients to book online."
+                      : "You haven't booked any appointments. Start by scheduling your first visit with a doctor."}
+                  </p>
                 </div>
               ) : null}
             </div>
