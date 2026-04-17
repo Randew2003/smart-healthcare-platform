@@ -1,64 +1,65 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Doctors from "./pages/Doctors";
-import Services from "./pages/Services";
-import Contact from "./pages/Contact";
-import Appointments from "./pages/Appointments";
-import Telemedicine from "./pages/Telemedicine";
-import Payments from "./pages/Payments";
-import Profile from "./pages/Profile";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/PaymentCancel";
-import NotFound from "./pages/NotFound";
+
+import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminPendingDoctors from "./pages/admin/AdminPendingDoctors";
-import AdminAppointments from "./pages/admin/AdminAppointments";
-import BookAppointment from "./pages/appointments/BookAppointment";
-import MyAppointments from "./pages/appointments/MyAppointments";
+
+import Home from "./pages/patient/Home";
+import Doctors from "./pages/patient/Doctors";
+import Services from "./pages/patient/Services";
+import Contact from "./pages/patient/Contact";
+import Telemedicine from "./pages/patient/Telemedicine";
+import Payments from "./pages/patient/Payments";
+import Profile from "./pages/patient/Profile";
+import PaymentSuccess from "./pages/patient/PaymentSuccess";
+import PaymentCancel from "./pages/patient/PaymentCancel";
+import NotFound from "./pages/patient/NotFound";
+
+import Login from "./pages/auth/Login";
+import PatientRegister from "./pages/auth/PatientRegister";
+import DoctorRegister from "./pages/auth/DoctorRegister";
+
+import AdminRegister from "./pages/admin/AdminRegister";
+import AdminLogin from "./pages/admin/AdminLogin";
+
+import Appointments from "./pages/Appointments";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-
-        <Route path="/doctors" element={<Doctors />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/contact" element={<Contact />} />
-
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-        <Route element={<ProtectedRoute roles={["patient", "doctor"]} />}>
-          <Route path="/appointments" element={<MyAppointments />} />
-          <Route path="/book-appointment" element={<BookAppointment />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
-
-        <Route element={<ProtectedRoute roles={["patient"]} />}>
-          <Route path="/payments" element={<Payments />} />
-        </Route>
-
-        <Route element={<ProtectedRoute roles={["doctor"]} />}>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public patient pages */}
+          <Route path="/" element={<Home />} />
+          <Route path="/doctors" element={<Doctors />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/telemedicine" element={<Telemedicine />} />
-        </Route>
 
-        <Route element={<ProtectedRoute roles={["admin"]} />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/doctors" element={<AdminPendingDoctors />} />
-          <Route path="/admin/appointments" element={<AdminAppointments />} />
-        </Route>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<PatientRegister />} />
+          <Route path="/register/doctor" element={<DoctorRegister />} />
 
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} />
+          {/* Admin pages */}
+          <Route path="/admin/register" element={<AdminRegister />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
+
+          {/* Protected patient pages */}
+          <Route element={<ProtectedRoute roles={["patient"]} />}>
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          {/* Shared */}
+          <Route element={<ProtectedRoute roles={["patient", "doctor"]} />}>
+            <Route path="/appointments" element={<Appointments />} />
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

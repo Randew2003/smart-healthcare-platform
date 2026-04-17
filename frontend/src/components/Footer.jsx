@@ -1,153 +1,127 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/logo01.png";
 
+const quickLinks = [
+  { label: "Home", to: "/" },
+  { label: "Doctors", to: "/doctors" },
+  { label: "Services", to: "/services" },
+  { label: "Contact", to: "/contact" },
+  { label: "Login", to: "/login" },
+  { label: "Register", to: "/register" },
+];
+
+const servicesLinks = [
+  { label: "Appointments", to: "/appointments" },
+  { label: "Telemedicine", to: "/telemedicine" },
+  { label: "Payments", to: "/payments" },
+  { label: "Medical Records", to: "/profile" },
+];
+
 export default function Footer() {
   return (
-    <footer style={styles.footer}>
-      <div style={styles.container}>
-        <div style={styles.left}>
-          <img src={logo} alt="healthCare" style={styles.logo} />
+    <footer className="mt-16 bg-gradient-to-br from-lime-700 via-lime-600 to-lime-800 text-white">
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
+        {/* Brand section */}
+        <div className="lg:col-span-4">
+          <div className="mb-6">
+            <img
+              src={logo}
+              alt="healthCare"
+              className="h-14 w-auto object-contain sm:h-16"
+            />
+          </div>
 
-          <p style={styles.description}>
+          <p className="max-w-md text-sm leading-7 text-white/90 sm:text-[15px]">
             healthCare is a smart healthcare platform for appointments,
             telemedicine, medical records, and secure online payments.
           </p>
 
-         
+          <div className="mt-8 space-y-3">
+            <div className="flex items-center gap-3 text-sm text-white/90">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+                📧
+              </span>
+              <span>support@healthcare.com</span>
+            </div>
+
+            <div className="flex items-center gap-3 text-sm text-white/90">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+                📞
+              </span>
+              <span>+94 11 234 5678</span>
+            </div>
+
+            <div className="flex items-center gap-3 text-sm text-white/90">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+                ⏰
+              </span>
+              <span>24/7 Support Available</span>
+            </div>
+          </div>
         </div>
 
-        <div style={styles.right}>
-          <div style={styles.linksGrid}>
-            <div>
-              <h3 style={styles.heading}>QUICK LINKS</h3>
-              <ul style={styles.list}>
-                <li><Link to="/" style={styles.link}>Home</Link></li>
-                <li><Link to="/doctors" style={styles.link}>Doctors</Link></li>
-                <li><Link to="/services" style={styles.link}>Services</Link></li>
-                <li><Link to="/contact" style={styles.link}>Contact</Link></li>
-                <li><Link to="/login" style={styles.link}>Login</Link></li>
-                <li><Link to="/register" style={styles.link}>Register</Link></li>
-              </ul>
-            </div>
+        {/* Links area */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3">
+          <div>
+            <h3 className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-white/95">
+              Quick Links
+            </h3>
 
-            <div>
-              <h3 style={styles.heading}>SERVICES</h3>
-              <ul style={styles.list}>
-                <li><Link to="/appointments" style={styles.link}>Appointments</Link></li>
-                <li><Link to="/telemedicine" style={styles.link}>Telemedicine</Link></li>
-                <li><Link to="/payments" style={styles.link}>Payments</Link></li>
-                <li><Link to="/profile" style={styles.link}>Medical Records</Link></li>
-              </ul>
-            </div>
+            <ul className="space-y-3">
+              {quickLinks.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.to}
+                    className="text-sm text-white/85 transition hover:translate-x-1 hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            <div>
-              <h3 style={styles.heading}>SUPPORT</h3>
-              <ul style={styles.list}>
-                <li>support@healthcare.com</li>
-                <li>+94 11 234 5678</li>
-                <li>24/7 Support</li>
-              </ul>
-            </div>
+          <div>
+            <h3 className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-white/95">
+              Services
+            </h3>
+
+            <ul className="space-y-3">
+              {servicesLinks.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.to}
+                    className="text-sm text-white/85 transition hover:translate-x-1 hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-5 text-sm font-bold uppercase tracking-[0.2em] text-white/95">
+              Support
+            </h3>
+
+            <ul className="space-y-3 text-sm text-white/85">
+              <li>support@healthcare.com</li>
+              <li>+94 11 234 5678</li>
+              <li>24/7 Customer Care</li>
+              <li>Secure Health Data Protection</li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <div style={styles.bottomBar}>
-        <p>© 2026 healthCare. All Rights Reserved.</p>
-        <p>We Protect Your Health</p>
+      {/* Bottom bar */}
+      <div className="border-t border-white/15">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-white/80 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+          <p>© 2026 healthCare. All Rights Reserved.</p>
+          <p>We Protect Your Health</p>
+        </div>
       </div>
     </footer>
   );
 }
-
-const styles = {
-  footer: {
-    width: "100%",
-    backgroundColor: "#60a421",
-    color: "#fff",
-    marginTop: "40px",
-    fontFamily: "'Archivo', sans-serif"
-  },
-
-  container: {
-    width: "100%",
-    padding: "50px 170px 35px 170px",
-    boxSizing: "border-box",
-    display: "grid",
-    gridTemplateColumns: "1.1fr 1.9fr",
-    gap: "80px",
-    alignItems: "start"
-  },
-
-  left: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "18px",
-    maxWidth: "420px"
-  },
-
-  logo: {
-    width: "220px"
-  },
-
-  description: {
-    fontSize: "15px",
-    lineHeight: "1.9",
-    fontWeight: 300,
-    opacity: 0.96
-  },
-
-  contact: {
-    fontSize: "18px",
-    fontWeight: 600,
-    marginTop: "4px",
-    cursor: "pointer"
-  },
-
-  right: {
-    width: "100%"
-  },
-
-  linksGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "60px"
-  },
-
-  heading: {
-    fontSize: "18px",
-    fontWeight: 600,
-    marginBottom: "16px"
-  },
-
-  list: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    fontSize: "16px",
-    lineHeight: "1.6"
-  },
-
-  link: {
-    color: "#fff",
-    textDecoration: "none",
-    fontWeight: 400
-  },
-
-  bottomBar: {
-    width: "100%",
-    padding: "18px 170px",
-    boxSizing: "border-box",
-    borderTop: "1px solid rgba(255,255,255,0.22)",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "10px",
-    fontSize: "15px",
-    fontWeight: 300
-  }
-};

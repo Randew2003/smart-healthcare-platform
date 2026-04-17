@@ -8,11 +8,44 @@ import {
   addPrescription,
   getPrescriptions,
   addReport,
-  getReports
+  getReports,
+
+  // Doctor-specific endpoints
+  getPatientProfileForDoctor,
+  getPatientMedicalHistoryForDoctor,
+  getPatientPrescriptionsForDoctor,
+  getPatientReportsForDoctor
 } from "../controllers/patientController.js";
 import { protect, authorize } from "../middleware/auth.js";
 
 const router = Router();
+
+// Doctor-view routes
+// These routes allow doctors (or admins) to view patient data by patient userId.
+router.get(
+  "/doctor-view/:patientId/profile",
+  protect,
+  authorize("doctor", "admin"),
+  getPatientProfileForDoctor
+);
+router.get(
+  "/doctor-view/:patientId/medical-history",
+  protect,
+  authorize("doctor", "admin"),
+  getPatientMedicalHistoryForDoctor
+);
+router.get(
+  "/doctor-view/:patientId/prescriptions",
+  protect,
+  authorize("doctor", "admin"),
+  getPatientPrescriptionsForDoctor
+);
+router.get(
+  "/doctor-view/:patientId/reports",
+  protect,
+  authorize("doctor", "admin"),
+  getPatientReportsForDoctor
+);
 
 router.use(protect, authorize("patient"));
 

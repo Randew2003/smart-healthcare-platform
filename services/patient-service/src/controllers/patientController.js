@@ -1,5 +1,6 @@
 import Patient from "../models/Patient.js";
 
+
 export async function createProfile(req, res) {
   try {
     const userId = req.user.id;
@@ -232,3 +233,91 @@ export async function getReports(req, res) {
     return res.status(500).json({ message: error.message });
   }
 }
+
+// GET patient profile for doctor/admin view (lookup by patient userId, fallback to profile _id)
+export const getPatientProfileForDoctor = async (req, res) => {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+
+    let patient = await Patient.findOne({ userId: patientId }).select(
+      "fullName email phone dob gender address bloodGroup allergies"
+    );
+
+    if (!patient) {
+      patient = await Patient.findById(patientId).select(
+        "fullName email phone dob gender address bloodGroup allergies"
+      );
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json(patient);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient medical history for doctor/admin view
+export const getPatientMedicalHistoryForDoctor = async (req, res) => {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+
+    let patient = await Patient.findOne({ userId: patientId }).select("medicalHistory");
+
+    if (!patient) {
+      patient = await Patient.findById(patientId).select("medicalHistory");
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json(patient.medicalHistory || []);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient prescriptions for doctor/admin view
+export const getPatientPrescriptionsForDoctor = async (req, res) => {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+
+    let patient = await Patient.findOne({ userId: patientId }).select("prescriptions");
+
+    if (!patient) {
+      patient = await Patient.findById(patientId).select("prescriptions");
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json(patient.prescriptions || []);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// GET patient reports for doctor/admin view
+export const getPatientReportsForDoctor = async (req, res) => {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+
+    let patient = await Patient.findOne({ userId: patientId }).select("reports");
+
+    if (!patient) {
+      patient = await Patient.findById(patientId).select("reports");
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json(patient.reports || []);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
