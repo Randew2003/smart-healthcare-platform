@@ -33,48 +33,51 @@ export default function MyAppointments() {
 
   return (
     <MainLayout>
-      <div style={styles.page}>
-        <div style={styles.hero}>
-          <h2 style={styles.title}>My Appointments</h2>
-          <p style={styles.sub}>View and manage your scheduled appointments.</p>
+      <div className="px-4 pb-16 max-w-[1200px] mx-auto">
+        <div className="bg-[linear-gradient(135deg,rgba(128,195,66,0.16),rgba(251,176,51,0.14))] border border-[rgba(128,195,66,0.15)] rounded-[18px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+          <h2 className="m-0 text-2xl text-slate-900">My Appointments</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">View and manage your scheduled appointments.</p>
         </div>
 
         {!isLoggedIn() ? (
-          <div style={styles.note}>Please login to view your appointments.</div>
+          <div className="mt-4 text-slate-600 text-sm">Please login to view your appointments.</div>
         ) : null}
 
-        {error ? <div style={styles.error}>{error}</div> : null}
+        {error ? <div className="mt-4 rounded-xl bg-red-100 border border-red-200 px-3 py-2 text-sm text-red-700">{error}</div> : null}
 
-        <div style={styles.grid}>
-          <div style={styles.card}>
-            <div style={styles.headerRow}>
-              <h3 style={styles.cardTitle}>My Appointments</h3>
-              <Link to="/book-appointment" style={styles.primaryBtn}>
+        <div className="mt-4 grid gap-4">
+          <div className="bg-white rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)] p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
+              <h3 className="m-0 text-base font-semibold text-slate-900">My Appointments</h3>
+              <Link
+                to="/book-appointment"
+                className="inline-block rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
+              >
                 Book New Appointment
               </Link>
             </div>
 
-            {loading ? <div style={styles.note}>Loading...</div> : null}
+            {loading ? <div className="text-slate-600 text-sm">Loading...</div> : null}
 
-            <div style={styles.list}>
+            <div className="mt-3 grid gap-2">
               {appointments.map((appt) => (
-                <div key={appt._id} style={styles.row}>
-                  <div style={styles.rowTitle}>
-                    {appt.status || "Scheduled"}
-                    <span style={styles.mono}>{appt._id}</span>
+                <div key={appt._id} className="rounded-[14px] border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs font-black text-slate-900">
+                    <span>{appt.status || "Scheduled"}</span>
+                    <span className="font-mono text-[11px] text-slate-500">{appt._id}</span>
                   </div>
-                  <div style={styles.rowMeta}><b>Doctor:</b> Dr. {appt.doctor?.name || "N/A"} ({appt.doctor?.specialization || ""})</div>
-                  <div style={styles.rowMeta}><b>Date:</b> {appt.date}</div>
-                  <div style={styles.rowMeta}><b>Time:</b> {appt.time}</div>
-                  <div style={styles.rowMeta}><b>Reason:</b> {appt.reason || "N/A"}</div>
-                  <div style={styles.rowMeta}><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
+                  <div className="mt-2 text-slate-600 text-xs leading-6"><b>Doctor:</b> Dr. {appt.doctor?.name || "N/A"} ({appt.doctor?.specialization || ""})</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Date:</b> {appt.date}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.reason || "N/A"}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
                 </div>
               ))}
 
               {!loading && appointments.length === 0 ? (
-                <div style={styles.emptyState}>
-                  <h4 style={styles.emptyTitle}>No Appointments Yet</h4>
-                  <p style={styles.emptyText}>You haven't booked any appointments. Start by scheduling your first visit with a doctor.</p>
+                <div className="text-center p-10">
+                  <h4 className="m-0 text-lg font-semibold text-slate-900 mb-2">No Appointments Yet</h4>
+                  <p className="m-0 text-sm leading-6 text-slate-600">You haven't booked any appointments. Start by scheduling your first visit with a doctor.</p>
                 </div>
               ) : null}
             </div>
@@ -85,62 +88,3 @@ export default function MyAppointments() {
   );
 }
 
-const styles = {
-  page: {
-    padding: "26px 16px 60px 16px",
-    maxWidth: 1200,
-    margin: "0 auto"
-  },
-  hero: {
-    background: "linear-gradient(135deg, rgba(128,195,66,0.16), rgba(251,176,51,0.14))",
-    border: "1px solid rgba(128,195,66,0.15)",
-    borderRadius: 18,
-    padding: 24,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.06)"
-  },
-  title: { margin: 0, fontSize: 28, color: "#1f2937" },
-  sub: { margin: "10px 0 0 0", color: "#4b5563", fontSize: 14, lineHeight: 1.8 },
-  grid: { marginTop: 18, display: "grid", gridTemplateColumns: "1fr", gap: 14 },
-  card: {
-    background: "#fff",
-    borderRadius: 18,
-    border: "1px solid rgba(0,0,0,0.06)",
-    boxShadow: "0 12px 40px rgba(0,0,0,0.05)",
-    padding: 18
-  },
-  cardTitle: { margin: 0, fontSize: 16, color: "#111827" },
-  headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 12 },
-  primaryBtn: {
-    textDecoration: "none",
-    background: "linear-gradient(90deg, #80c342, #fbb033)",
-    color: "#fff",
-    padding: "12px 14px",
-    borderRadius: 12,
-    fontWeight: 900,
-    fontSize: 13,
-    display: "inline-block"
-  },
-  list: { marginTop: 12, display: "grid", gap: 10 },
-  row: {
-    padding: 14,
-    borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.06)",
-    background: "#fbfdf9"
-  },
-  rowTitle: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 12, color: "#111827" },
-  rowMeta: { marginTop: 8, color: "#4b5563", fontSize: 12, lineHeight: 1.6 },
-  mono: { fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" },
-  error: {
-    marginTop: 14,
-    padding: "10px 12px",
-    borderRadius: 12,
-    background: "rgba(239,68,68,0.08)",
-    color: "#b91c1c",
-    border: "1px solid rgba(239,68,68,0.18)",
-    fontSize: 13
-  },
-  note: { marginTop: 14, color: "#4b5563", fontSize: 13 },
-  emptyState: { textAlign: "center", padding: "40px 20px" },
-  emptyTitle: { margin: 0, fontSize: 18, color: "#111827", marginBottom: 8 },
-  emptyText: { margin: 0, color: "#4b5563", fontSize: 14, lineHeight: 1.6, marginBottom: 20 }
-};
