@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { syncDoctorToDoctorService } from "../utils/doctorServiceSync.js";
 
 export async function getAllUsers(_req, res) {
   try {
@@ -36,6 +37,11 @@ export async function verifyDoctor(req, res) {
 
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found." });
+    }
+
+    if (status === "verified") {
+      // Non-blocking best-effort sync into doctor-service so patients can list doctors.
+      syncDoctorToDoctorService(doctor);
     }
 
     return res.json({ message: `Doctor ${status}.`, doctor });

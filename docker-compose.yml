@@ -26,7 +26,7 @@ services:
     container_name: appointment-service
     restart: unless-stopped
     environment:
-      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net//appointment_db?appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/appointment_db?appName=Cluster0"
     ports:
       - "4001:4001"
     depends_on:
@@ -46,7 +46,7 @@ services:
     env_file:
       - ./services/patient-service/.env
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/patientdb?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/patient_db?appName=Cluster0"
       JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4003:4003"
@@ -60,7 +60,7 @@ services:
     env_file:
       - ./services/payment-service/.env
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/paymentdb?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/payment_db?appName=Cluster0"
       JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4004:4004"
@@ -74,7 +74,7 @@ services:
     env_file:
       - ./services/doctor-service/.env
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/doctor_db?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/doctor_db?appName=Cluster0"
       APPOINTMENT_SERVICE_URL: "http://appointment-service:4001"
       PATIENT_SERVICE_URL: "http://patient-service:4003"
     ports:
@@ -91,7 +91,7 @@ services:
     env_file:
       - ./services/telemedicine-service/.env
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/telemedicine_db?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/telemedicine_db?appName=Cluster0"
     ports:
       - "4006:4006"
     depends_on:

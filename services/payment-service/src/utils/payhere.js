@@ -13,27 +13,34 @@ function normalizeMerchantSecret(merchantSecret) {
   if (!raw) return raw;
 
   // Control how we interpret the merchant secret.
-  // - raw: use as-is
-  // - base64: base64-decode
-  // - auto (default): decode only when it clearly looks base64-encoded
-  const mode = String(process.env.PAYHERE_MERCHANT_SECRET_ENCODING || "auto")
+  // - raw: use the secret as-is
+  // - base64: base64-decode before hashing
+  // - auto: decode only when explicitly prefixed as base64:...
+  const mode = String(process.env.PAYHERE_MERCHANT_SECRET_ENCODING || "raw")
     .trim()
     .toLowerCase();
 
   if (mode === "raw") return raw;
 
-  const looksBase64 = /^[A-Za-z0-9+/]+={0,2}$/.test(raw) && raw.length % 4 === 0;
-
-  if (mode === "base64" || (mode === "auto" && looksBase64)) {
+  const decodeBase64 = (value) => {
     try {
-      const decoded = Buffer.from(raw, "base64").toString("utf8").trim();
-      // Only accept decoded values that look like plain numeric/alphanumeric secrets.
-      if (decoded && /^[0-9A-Za-z]+$/.test(decoded) && decoded.length >= 16) {
-        return decoded;
-      }
+      return Buffer.from(value, "base64").toString("utf8").trim();
     } catch {
-      // ignore
+      return "";
     }
+  };
+
+  if (mode === "base64") {
+    const decoded = decodeBase64(raw);
+    return decoded || raw;
+  }
+
+  if (mode === "auto") {
+    if (raw.toLowerCase().startsWith("base64:")) {
+      const decoded = decodeBase64(raw.slice("base64:".length));
+      return decoded || raw;
+    }
+    return raw;
   }
 
   return raw;

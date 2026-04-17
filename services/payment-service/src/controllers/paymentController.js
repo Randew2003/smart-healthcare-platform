@@ -45,9 +45,24 @@ export async function createPayment(req, res) {
     const returnUrl = String(process.env.PAYMENT_RETURN_URL || (origin ? `${origin}/payment-success` : "")).trim();
     const cancelUrl = String(process.env.PAYMENT_CANCEL_URL || (origin ? `${origin}/payment-cancel` : "")).trim();
 
-    let notifyUrl = String(process.env.PAYMENT_NOTIFY_URL || (origin ? `${origin}/api/payments/notify` : "")).trim();
-    if (notifyUrl.includes("YOUR_PUBLIC_URL") && origin) {
-      notifyUrl = `${origin}/api/payments/notify`;
+    // Prefer building notify_url from the return_url origin so localhost keeps its port (e.g., http://localhost:3000).
+    const originFromReturnUrl = (() => {
+      try {
+        return new URL(returnUrl).origin;
+      } catch {
+        return "";
+      }
+    })();
+
+    let notifyUrl = String(
+      process.env.PAYMENT_NOTIFY_URL ||
+        (originFromReturnUrl ? `${originFromReturnUrl}/api/payments/notify` : origin ? `${origin}/api/payments/notify` : "")
+    ).trim();
+
+    // Replace the template placeholder with a usable origin.
+    if (notifyUrl.includes("YOUR_PUBLIC_URL")) {
+      const replacementOrigin = originFromReturnUrl || origin;
+      if (replacementOrigin) notifyUrl = `${replacementOrigin}/api/payments/notify`;
     }
 
     if (!merchantId || !merchantSecret || !checkoutUrl || !returnUrl || !cancelUrl || !notifyUrl) {
