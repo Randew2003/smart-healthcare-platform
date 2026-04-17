@@ -24,6 +24,13 @@ const router = express.Router();
 // Define routes for telemedicine sessions
 router.post("/", createSession);// Route to create a new telemedicine session(POST /api/sessions)
 router.get("/", getAllSessions);// Route to get all telemedicine sessions(GET /api/sessions)
+
+// History routes
+router.get("/doctor/:doctorId", getSessionsByDoctor);
+router.get("/patient/:patientId", getSessionsByPatient);
+router.get("/history/completed", getCompletedSessions);
+
+//Single session routes
 router.get("/:id", getSessionById);// Route to get one session by ID(GET /api/sessions/:id)
 router.put("/:id", updateSession);// Route to update a session(PUT /api/sessions/:id)
 router.delete("/:id", deleteSession);// Route to delete a session(DELETE /api/sessions/:id)
@@ -41,10 +48,6 @@ router.get("/:id/meeting", getMeetingDetails);
 router.put("/:id/notes", updateSessionNotes);
 router.get("/:id/notes", getSessionNotes);
 
-// History routes
-router.get("/doctor/:doctorId", getSessionsByDoctor);
-router.get("/patient/:patientId", getSessionsByPatient);
-router.get("/history/completed", getCompletedSessions);
 
 // Follow-up routes
 router.put("/:id/follow-up", updateFollowUpDetails);
