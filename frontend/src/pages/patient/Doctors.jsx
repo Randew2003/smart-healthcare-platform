@@ -1,156 +1,156 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
-import { api } from "../../utils/api";
+import doctorsBanner from "../../assets/patientassets/doctors.png";
 
 export default function Doctors() {
+  const [query, setQuery] = useState("");
+  const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [doctors, setDoctors] = useState([]);
-  const [query, setQuery] = useState("");
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const { data } = await api.get("/api/doctors/verified");
-      const list = Array.isArray(data) ? data : data?.data;
-      setDoctors(Array.isArray(list) ? list : []);
-    } catch (err) {
-      setDoctors([]);
-      setError(err?.response?.data?.message || "Failed to load doctors.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 🔹 Fetch doctors from backend
   useEffect(() => {
-    load();
+    const loadDoctors = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch("/api/doctors"); // 🔸 change if needed
+        const data = await res.json();
+
+        // ✅ Ensure always array
+        let doctorList = [];
+
+        if (Array.isArray(data)) {
+          doctorList = data;
+        } else if (Array.isArray(data?.data)) {
+          doctorList = data.data;
+        } else if (Array.isArray(data?.doctors)) {
+          doctorList = data.doctors;
+        }
+
+        setDoctors(doctorList);
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctors.");
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDoctors();
   }, []);
 
+  // 🔹 Filter
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return doctors;
-    return doctors.filter((d) => {
-      const name = String(d?.name || d?.fullName || "").toLowerCase();
-      const spec = String(d?.specialization || "").toLowerCase();
-      const clinic = String(d?.clinicName || "").toLowerCase();
-      return name.includes(q) || spec.includes(q) || clinic.includes(q);
+
+    return doctors.filter((doctor) => {
+      return (
+        doctor?.name?.toLowerCase().includes(q) ||
+        doctor?.specialization?.toLowerCase().includes(q) ||
+        doctor?.clinicName?.toLowerCase().includes(q)
+      );
     });
-  }, [doctors, query]);
+  }, [query, doctors]);
 
   return (
     <MainLayout>
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-[170px]">
-        <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900">Doctors</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Browse verified doctors and book your appointment.
-              </p>
-            </div>
+      <section className="bg-[#f5fbff]">
 
-            <div className="flex gap-2">
-              <button
-                onClick={load}
-                className="rounded-xl border border-[#80c342]/30 bg-[#80c342]/10 px-4 py-2 text-sm font-extrabold text-[#2f6b14]"
-              >
-                Refresh
-              </button>
-            </div>
+        {/* 🔹 Banner */}
+        <div className="w-full overflow-hidden">
+          <div className="h-[220px] sm:h-[260px] lg:h-[300px]">
+            <img
+              src={doctorsBanner}
+              alt="Doctors Banner"
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+
+          {/* 🔹 Intro */}
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-[#00bbb3]">
+              Medical Specialists
+            </p>
+            <h1 className="mt-3 text-3xl font-extrabold text-[#02539d] sm:text-4xl">
+              Find the Right Doctor for You
+            </h1>
+            <p className="mt-3 text-sm text-slate-600">
+              Browse our experienced doctors and choose the best specialist for your healthcare needs.
+            </p>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="text-xs font-extrabold text-slate-700">Search</label>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by name, specialization, clinic..."
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20"
-              />
-            </div>
-            <div className="flex items-end">
-              <Link
-                to="/appointments"
-                className="inline-flex w-full items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421]"
-              >
-                Go to Appointments
-              </Link>
-            </div>
+          {/* 🔹 Search */}
+          <div className="mt-8">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search doctor, specialization, clinic..."
+              className="h-12 w-full rounded-xl border border-[#cfe3f3] px-4 text-sm outline-none focus:border-[#00bbb3] focus:ring-2 focus:ring-[#00bbb3]/20"
+            />
           </div>
 
-          {error ? (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {/* 🔹 Error */}
+          {error && (
+            <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {error}
             </div>
-          ) : null}
+          )}
 
-          <div className="mt-6">
-            {loading ? (
-              <div className="text-sm text-slate-600">Loading doctors...</div>
-            ) : null}
-
-            {!loading && filtered.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600">
-                No doctors found.
-              </div>
-            ) : null}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {filtered.map((d) => (
+          {/* 🔹 Content */}
+          {loading ? (
+            <div className="mt-10 text-center text-sm text-slate-500">
+              Loading doctors...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="mt-10 rounded-xl border border-[#d9edf9] bg-white px-6 py-10 text-center text-sm text-slate-500 shadow-sm">
+              No doctors available.
+            </div>
+          ) : (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((doctor) => (
                 <div
-                  key={d._id}
-                  className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm"
+                  key={doctor?._id || doctor?.id}
+                  className="rounded-[20px] border border-[#d9edf9] bg-white p-6 shadow-sm hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-base font-black text-slate-900">
-                        {d?.name || d?.fullName || "Doctor"}
-                      </div>
-                      <div className="mt-1 text-sm font-semibold text-slate-600">
-                        {d?.specialization || "General"}
-                      </div>
-                      {d?.clinicName ? (
-                        <div className="mt-1 text-xs text-slate-500">Clinic: {d.clinicName}</div>
-                      ) : null}
-                    </div>
+                  <h3 className="text-lg font-extrabold text-[#02539d]">
+                    {doctor?.name}
+                  </h3>
 
-                    <div className="rounded-full border border-[#fbb033]/35 bg-[#fbb033]/15 px-3 py-1 text-xs font-extrabold text-[#7a4d00]">
-                      Verified
-                    </div>
-                  </div>
+                  <p className="mt-1 text-sm font-bold text-[#00bbb3]">
+                    {doctor?.specialization}
+                  </p>
 
-                  {d?.bio ? (
-                    <p className="mt-3 line-clamp-3 text-sm text-slate-600">{d.bio}</p>
-                  ) : (
-                    <p className="mt-3 text-sm text-slate-600">
-                      Book an appointment to consult with this doctor.
-                    </p>
-                  )}
+                  <p className="text-sm text-slate-500">
+                    {doctor?.clinicName}
+                  </p>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <p className="mt-4 text-sm text-slate-600">
+                    {doctor?.bio || "Doctor information not available."}
+                  </p>
+
+                  <div className="mt-5">
                     <Link
-                      to={`/appointments?doctorId=${encodeURIComponent(d._id)}`}
-                      className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421]"
+                      to={`/appointments?doctorId=${doctor?._id}`}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#0070cd] text-sm font-bold text-white hover:bg-[#02539d]"
                     >
-                      Book appointment
-                    </Link>
-                    <Link
-                      to="/payments"
-                      className="inline-flex items-center justify-center rounded-xl border border-[#80c342]/30 bg-[#80c342]/10 px-4 py-2 text-sm font-black text-[#2f6b14]"
-                    >
-                      Payments
+                      Book Appointment
                     </Link>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          )}
+
         </div>
-      </div>
+      </section>
     </MainLayout>
   );
 }

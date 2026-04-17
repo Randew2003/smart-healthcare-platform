@@ -22,37 +22,65 @@ const services = [
 export default function Services() {
   return (
     <MainLayout>
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-[170px]">
-        <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-black text-slate-900">Services</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Everything you need for a smooth patient experience.
-          </p>
+      <section className="bg-[#f5fbff]">
+        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {/* 🔹 Intro */}
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-[#00bbb3]">
+              Our Services
+            </p>
+            <h1 className="mt-3 text-3xl font-extrabold text-[#02539d] sm:text-4xl">
+              Everything You Need in One Place
+            </h1>
+            <p className="mt-3 text-sm text-slate-600">
+              We provide a complete digital healthcare experience for patients.
+            </p>
+          </div>
+
+          {/* 🔹 Services Grid */}
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
             {services.map((s) => (
-              <div key={s.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-[#80c342]/12 text-[#2f6b14] flex items-center justify-center font-black">
+              <div
+                key={s.title}
+                className="rounded-[24px] border border-[#d9edf9] bg-white p-6 shadow-sm hover:shadow-md transition"
+              >
+                <div className="flex items-start gap-4">
+                  
+                  {/* Icon */}
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#00bbb3]/10 text-[#00bbb3] font-extrabold text-lg">
                     ✓
                   </div>
+
+                  {/* Content */}
                   <div>
-                    <div className="text-base font-black text-slate-900">{s.title}</div>
-                    <div className="mt-1 text-sm text-slate-600">{s.text}</div>
+                    <h3 className="text-lg font-extrabold text-[#02539d]">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600 leading-6">
+                      {s.text}
+                    </p>
                   </div>
+
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-[#fbb033]/35 bg-[#fbb033]/10 p-5">
-            <div className="text-sm font-extrabold text-[#7a4d00]">Tip</div>
-            <div className="mt-1 text-sm text-slate-700">
-              Start by creating your patient profile in <span className="font-extrabold">Profile</span>, then book an appointment.
-            </div>
+          {/* 🔹 Tip Section */}
+          <div className="mt-10 rounded-[24px] border border-[#d9edf9] bg-white p-6 shadow-sm">
+            <p className="text-sm font-extrabold uppercase tracking-[0.2em] text-[#00bbb3]">
+              Quick Tip
+            </p>
+            <p className="mt-2 text-sm text-slate-600">
+              Start by creating your patient profile in{" "}
+              <span className="font-extrabold text-[#02539d]">Profile</span>, then
+              book an appointment with your preferred doctor.
+            </p>
           </div>
+
         </div>
-      </div>
+      </section>
     </MainLayout>
   );
 }
