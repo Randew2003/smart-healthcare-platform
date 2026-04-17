@@ -137,11 +137,23 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-[13px] text-white hover:text-white/80">
+              <Link
+                to="/login"
+                className="whitespace-nowrap rounded-md border border-white/50 px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-white/10"
+              >
                 Login
               </Link>
-              <Link to="/register" className="text-[13px] text-white hover:text-white/80">
+              <Link
+                to="/register"
+                className="whitespace-nowrap rounded-md bg-white px-3 py-1.5 text-[12px] font-semibold text-[#0070cd] transition hover:bg-gray-100"
+              >
                 Register
+              </Link>
+              <Link
+                to="/register/doctor"
+                className="whitespace-nowrap rounded-md border border-white/50 px-3 py-1.5 text-[12px] font-semibold text-white transition hover:bg-white/10"
+              >
+                Register as Doctor
               </Link>
             </>
           )}
