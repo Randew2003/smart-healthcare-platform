@@ -13,7 +13,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate(isAdmin ? "/admin/login" : "/login");
   };
 
   // ✅ NAV STYLE FOR BLUE BAR
