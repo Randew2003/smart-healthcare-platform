@@ -71,20 +71,25 @@ services:
     build: ./services/doctor-service
     container_name: doctor-service
     restart: unless-stopped
+    env_file:
+      - ./services/doctor-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/doctor_db?retryWrites=true&w=majority&appName=Cluster0"
-      SEED_SAMPLE_DATA: "false"
       APPOINTMENT_SERVICE_URL: "http://appointment-service:4001"
       PATIENT_SERVICE_URL: "http://patient-service:4003"
     ports:
       - "4005:4005"
     depends_on:
       - mongo
+      - appointment-service
+      - patient-service
 
   telemedicine-service:
     build: ./services/telemedicine-service
     container_name: telemedicine-service
     restart: unless-stopped
+    env_file:
+      - ./services/telemedicine-service/.env
     environment:
       MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/telemedicine_db?retryWrites=true&w=majority&appName=Cluster0"
     ports:
@@ -106,5 +111,10 @@ services:
       - telemedicine-service
       - payment-service
       - notification-service
+      
 volumes:
   mongo_data:
+
+
+
+  
