@@ -38,6 +38,8 @@ services:
     build: ./services/notification-service
     container_name: notification-service
     restart: unless-stopped
+    env_file:
+      - ./services/notification-service/.env
     ports:
       - "4002:4002"
 

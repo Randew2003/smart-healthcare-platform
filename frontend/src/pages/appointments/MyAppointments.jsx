@@ -36,7 +36,10 @@ export default function MyAppointments() {
         : `/api/appointments/patient/${encodeURIComponent(userId)}`;
 
       const { data } = await api.get(endpoint);
-      setAppointments(Array.isArray(data) ? data : []);
+      const sortedAppointments = Array.isArray(data) 
+        ? data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        : [];
+      setAppointments(sortedAppointments);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load appointments.");
       setAppointments([]);
@@ -95,7 +98,7 @@ export default function MyAppointments() {
                   <div className="mt-2 text-slate-600 text-xs leading-6"><b>Doctor:</b> Dr. {appt.doctor?.name || "N/A"} ({appt.doctor?.specialization || ""})</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Date:</b> {appt.date}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time}</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.reason || "N/A"}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.notes || "N/A"}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
                 </div>
               ))}
