@@ -1,5 +1,5 @@
 const Doctor = require("../models/Doctor");
-const Prescription = require("../models/Prescription");
+const Prescription = require("../models/prescription");
 
 // CREATE prescription
 // POST /api/doctors/:doctorId/prescriptions

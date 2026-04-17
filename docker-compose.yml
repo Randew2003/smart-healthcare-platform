@@ -13,8 +13,8 @@ services:
     container_name: auth-admin-service
     restart: unless-stopped
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/auth_admin_db?retryWrites=true&w=majority&appName=Cluster0"
-      MONGODB_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/auth_admin_db?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/auth_admin_db?appName=Cluster0"
+      MONGODB_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net/auth_admin_db?appName=Cluster0"
       JWT_SECRET: "smarthealthcare_dev_jwt_secret_change_me"
     ports:
       - "4000:4000"
@@ -26,7 +26,7 @@ services:
     container_name: appointment-service
     restart: unless-stopped
     environment:
-      MONGO_URI: "mongodb+srv://admin:123@cluster0.wctt17i.mongodb.net/appointment_db?retryWrites=true&w=majority&appName=Cluster0"
+      MONGO_URI: "mongodb+srv://meghapromotacc_db_user:nOjGMwusX3uetJXe@cluster0.8ggqmhz.mongodb.net//appointment_db?appName=Cluster0"
     ports:
       - "4001:4001"
     depends_on:
