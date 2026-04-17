@@ -15,6 +15,8 @@ import PaymentCancel from "./pages/patient/PaymentCancel";
 import NotFound from "./pages/patient/NotFound";
 
 import Login from "./pages/auth/Login";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import PatientRegister from "./pages/auth/PatientRegister";
 import DoctorRegister from "./pages/auth/DoctorRegister";
 
@@ -40,6 +42,8 @@ export default function App() {
           <Route path="/telemedicine" element={<Telemedicine />} />
 
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<PatientRegister />} />
           <Route path="/register/doctor" element={<DoctorRegister />} />
 

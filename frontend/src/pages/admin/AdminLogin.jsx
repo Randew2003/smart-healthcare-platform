@@ -13,6 +13,11 @@ export default function AdminLogin() {
     password: ""
   });
 
+  const trimmedEmail = formData.email.trim();
+  const forgotLink = trimmedEmail
+    ? `/forgot-password?email=${encodeURIComponent(trimmedEmail)}`
+    : "/forgot-password";
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -177,7 +182,7 @@ export default function AdminLogin() {
               </div>
 
               <div className="mt-3 text-sm text-slate-600">
-                <Link to="/forgot-password" className="font-semibold text-lime-700 transition hover:text-lime-800">
+                <Link to={forgotLink} className="font-semibold text-lime-700 transition hover:text-lime-800">
                   Forgot password?
                 </Link>
               </div>

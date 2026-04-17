@@ -71,6 +71,11 @@ export default function Login() {
       }
 
       if (data.token && data.user) {
+        if (data.user.role === "admin") {
+          setError("Admin accounts must sign in from the Admin Login page.");
+          return;
+        }
+
         login({
           token: data.token,
           user: data.user
@@ -86,6 +91,11 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  const trimmedEmail = formData.email.trim();
+  const forgotLink = trimmedEmail
+    ? `/forgot-password?email=${encodeURIComponent(trimmedEmail)}`
+    : "/forgot-password";
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -192,6 +202,12 @@ export default function Login() {
                     Apply here
                   </Link>
                 </div>
+              </div>
+
+              <div className="mt-3 text-sm text-slate-600">
+                <Link to={forgotLink} className="font-semibold text-lime-700 transition hover:text-lime-800">
+                  Forgot password?
+                </Link>
               </div>
             </div>
           </section>
