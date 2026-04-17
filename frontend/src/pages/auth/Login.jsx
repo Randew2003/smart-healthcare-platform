@@ -37,7 +37,7 @@ export default function Login() {
     if (user.role === "doctor") return "/appointments";
     if (user.role === "admin") return "/admin";
 
-    return "/appointments";
+    return "/";
   };
 
   const handleSubmit = async (e) => {
