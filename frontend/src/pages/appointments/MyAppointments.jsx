@@ -36,10 +36,8 @@ export default function MyAppointments() {
         : `/api/appointments/patient/${encodeURIComponent(userId)}`;
 
       const { data } = await api.get(endpoint);
-      const sortedAppointments = Array.isArray(data) 
-        ? data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        : [];
-      setAppointments(sortedAppointments);
+      
+      setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load appointments.");
       setAppointments([]);
