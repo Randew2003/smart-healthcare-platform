@@ -55,6 +55,11 @@ export default function AdminLogin() {
       }
 
       if (data.token && data.user) {
+        if (data.user.role !== "admin") {
+          setError("This account is not an admin. Please use the normal login page.");
+          return;
+        }
+
         login({
           token: data.token,
           user: data.user

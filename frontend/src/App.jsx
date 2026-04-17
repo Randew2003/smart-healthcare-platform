@@ -20,6 +20,10 @@ import DoctorRegister from "./pages/auth/DoctorRegister";
 
 import AdminRegister from "./pages/admin/AdminRegister";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminAppointments from "./pages/admin/AdminAppointments";
+import AdminUsers from "./pages/admin/AdminUsers";
+import PendingDoctors from "./pages/admin/PendingDoctors";
 import BookAppointment from "./pages/appointments/BookAppointment";
 import MyAppointments from "./pages/appointments/MyAppointments";
 
@@ -42,6 +46,21 @@ export default function App() {
           {/* Admin pages */}
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+
+          <Route
+            element={
+              <ProtectedRoute
+                roles={["admin"]}
+                redirectTo="/admin/login"
+                unauthorizedTo="/admin/login"
+              />
+            }
+          >
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/appointments" element={<AdminAppointments />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/doctors" element={<PendingDoctors />} />
+          </Route>
 
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-cancel" element={<PaymentCancel />} />
