@@ -81,20 +81,20 @@ export default function PatientRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[#f4f9ff] text-slate-900">
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_24%),linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b1220_100%)]" />
-        <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_30%),radial-gradient(circle_at_top_right,rgba(96,165,250,0.12),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)]" />
+        <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
           <section className="lg:col-span-5">
-            <div className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-lime-200 backdrop-blur">
+            <div className="inline-flex items-center rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-blue-700 shadow-sm">
               Patient Access
             </div>
 
-            <h1 className="mt-6 max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h1 className="mt-6 max-w-xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
               Create your patient account and book care faster.
             </h1>
 
-            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
+            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
               Register once to manage appointments, explore telemedicine, and access secure
               healthcare services from one place.
             </p>
@@ -108,7 +108,7 @@ export default function PatientRegister() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200 shadow-lg shadow-black/10 backdrop-blur"
+                  className="rounded-2xl border border-blue-100 bg-white p-4 text-sm text-slate-700 shadow-[0_10px_30px_rgba(37,99,235,0.06)]"
                 >
                   {item}
                 </div>
@@ -117,12 +117,30 @@ export default function PatientRegister() {
           </section>
 
           <section className="lg:col-span-7">
-            <div className="rounded-3xl border border-white/10 bg-white/95 p-6 text-slate-900 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">
-              <div className="mb-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-lime-700">
+            <div className="rounded-[28px] border border-blue-100 bg-white/95 p-6 text-slate-900 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-8 lg:p-10">
+              <div className="mb-8 flex items-start justify-between gap-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-700">
                   Patient Registration
                 </p>
-                <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+                <div className="hidden rounded-2xl bg-blue-50 px-4 py-3 text-right sm:block">
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-700">Tip</div>
+                  <div className="mt-1 text-xs text-slate-600">Use the home link to return to the public site.</div>
+                </div>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
+                  aria-label="Go to home page"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10.5L12 3l9 7.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 9.75V21h13.5V9.75" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 21v-6h4.5v6" />
+                  </svg>
+                  Home
+                </Link>
+              </div>
+              <div className="mb-8">
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
                   Set up your patient profile
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
@@ -132,13 +150,13 @@ export default function PatientRegister() {
               </div>
 
               {error && (
-                <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
                   {success}
                 </div>
               )}
@@ -153,7 +171,7 @@ export default function PatientRegister() {
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Enter your full name"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -165,7 +183,7 @@ export default function PatientRegister() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Enter your email"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
                 </div>
@@ -179,7 +197,7 @@ export default function PatientRegister() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Create a password"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -191,7 +209,7 @@ export default function PatientRegister() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Enter your phone number"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
                 </div>
@@ -199,7 +217,7 @@ export default function PatientRegister() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`inline-flex items-center justify-center rounded-xl bg-linear-to-r from-lime-600 to-amber-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-lime-500/20 transition hover:shadow-xl hover:shadow-lime-500/25 ${
+                  className={`inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-sky-500 px-5 py-3.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(59,130,246,0.24)] transition hover:shadow-[0_16px_36px_rgba(59,130,246,0.28)] ${
                     loading ? "cursor-not-allowed opacity-70" : ""
                   }`}
                 >
@@ -207,9 +225,9 @@ export default function PatientRegister() {
                 </button>
               </form>
 
-              <div className="mt-6 text-sm text-slate-600">
+              <div className="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
                 Already have an account?{" "}
-                <Link to="/login" className="font-semibold text-lime-700 transition hover:text-lime-800">
+                <Link to="/login" className="font-semibold text-blue-700 transition hover:text-blue-800">
                   Login here
                 </Link>
               </div>
