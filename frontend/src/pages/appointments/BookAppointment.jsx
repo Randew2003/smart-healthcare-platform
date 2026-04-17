@@ -71,24 +71,24 @@ export default function BookAppointment() {
 
   return (
     <MainLayout>
-      <div style={styles.page}>
-        <div style={styles.hero}>
-          <h2 style={styles.title}>Book Your Appointment</h2>
-          <p style={styles.sub}>Select a doctor, choose a date and time, and confirm your visit.</p>
+      <div className="px-4 pb-16 max-w-[1200px] mx-auto">
+        <div className="bg-[linear-gradient(135deg,rgba(128,195,66,0.16),rgba(251,176,51,0.14))] border border-[rgba(128,195,66,0.15)] rounded-[18px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+          <h2 className="m-0 text-2xl text-slate-900">Book Your Appointment</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-600">Select a doctor, choose a date and time, and confirm your visit.</p>
         </div>
 
         {/* GRID */}
-        <div style={styles.grid}>
+        <div className="mt-4 grid gap-5 sm:grid-cols-2">
           
           {/* DOCTOR SELECT */}
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Select Doctor</h3>
+          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Select Doctor</h3>
 
             <select
               name="doctorId"
               value={form.doctorId}
               onChange={handleChange}
-              style={styles.input}
+              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             >
               <option value="">-- Choose Doctor --</option>
               {doctors.map((doc) => (
@@ -100,34 +100,34 @@ export default function BookAppointment() {
           </div>
 
           {/* DATE */}
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Select Date</h3>
+          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Select Date</h3>
 
             <input
               type="date"
               name="date"
               value={form.date}
               onChange={handleChange}
-              style={styles.input}
+              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             />
           </div>
 
           {/* TIME */}
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Select Time</h3>
+          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Select Time</h3>
 
             <input
               type="time"
               name="time"
               value={form.time}
               onChange={handleChange}
-              style={styles.input}
+              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             />
           </div>
 
           {/* EMAIL */}
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Your Email</h3>
+          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Your Email</h3>
 
             <input
               type="email"
@@ -135,13 +135,13 @@ export default function BookAppointment() {
               value={form.patientEmail}
               onChange={handleChange}
               placeholder="Enter your email"
-              style={styles.input}
+              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             />
           </div>
 
           {/* PHONE */}
-          <div style={styles.card}>
-            <h3 style={styles.cardTitle}>Your Phone</h3>
+          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Your Phone</h3>
 
             <input
               type="tel"
@@ -149,34 +149,30 @@ export default function BookAppointment() {
               value={form.patientPhone}
               onChange={handleChange}
               placeholder="Enter your phone number"
-              style={styles.input}
+              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             />
           </div>
 
           {/* REASON */}
-          <div style={{ ...styles.card, gridColumn: "span 2" }}>
-            <h3 style={styles.cardTitle}>Reason for Visit</h3>
+          <div className="sm:col-span-2 bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
+            <h3 className="mb-3 text-base text-slate-900">Reason for Visit</h3>
 
             <textarea
               name="notes"
               value={form.notes}
               onChange={handleChange}
               placeholder="Describe your symptoms or reason..."
-              style={styles.textarea}
+              className="w-full min-h-[120px] px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
             />
           </div>
         </div>
 
         {/* BUTTON */}
-        <div style={styles.actions}>
+        <div className="mt-8 text-center">
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            style={{
-              ...styles.button,
-              opacity: submitting ? 0.7 : 1,
-              cursor: submitting ? "not-allowed" : "pointer"
-            }}
+            className={`${submitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"} inline-flex w-full sm:w-auto items-center justify-center rounded-[12px] px-4 py-3 text-sm font-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] bg-gradient-to-r from-[#80c342] to-[#fbb033]`}
           >
             {submitting ? "Booking..." : "Confirm Appointment"}
           </button>
@@ -185,79 +181,3 @@ export default function BookAppointment() {
     </MainLayout>
   );
 }
-
-
-const styles = {
-  page: {
-    padding: "26px 16px 60px 16px",
-    maxWidth: 1200,
-    margin: "0 auto"
-  },
-  hero: {
-    background: "linear-gradient(135deg, rgba(128,195,66,0.16), rgba(251,176,51,0.14))",
-    border: "1px solid rgba(128,195,66,0.15)",
-    borderRadius: 18,
-    padding: 24,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.06)"
-  },
-  title: { margin: 0, fontSize: 28, color: "#1f2937" },
-  sub: { margin: "10px 0 0 0", color: "#4b5563", fontSize: 14, lineHeight: 1.8 },
-
-  grid: {
-    marginTop: 18,
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: 20
-  },
-
-  card: {
-    background: "#fff",
-    padding: 18,
-    borderRadius: 18,
-    border: "1px solid rgba(0,0,0,0.06)",
-    boxShadow: "0 12px 40px rgba(0,0,0,0.05)"
-  },
-
-  cardTitle: {
-    marginBottom: "12px",
-    color: "#111827",
-    fontSize: 16
-  },
-
-  input: {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    outline: "none",
-    fontSize: 14,
-    background: "#fff"
-  },
-
-  textarea: {
-    width: "100%",
-    minHeight: "120px",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid #e5e7eb",
-    outline: "none",
-    background: "#fff",
-    fontSize: 14
-  },
-
-  actions: {
-    marginTop: "30px",
-    textAlign: "center"
-  },
-
-  button: {
-    background: "linear-gradient(90deg, #80c342, #fbb033)",
-    color: "#fff",
-    border: "none",
-    padding: "12px 14px",
-    borderRadius: 12,
-    fontSize: 13,
-    fontWeight: 900,
-    boxShadow: "0 12px 30px rgba(0,0,0,0.15)"
-  }
-};
