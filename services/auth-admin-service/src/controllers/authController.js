@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import { signToken } from "../utils/token.js";
 import crypto from "crypto";
 import { sendPasswordResetOtpEmail } from "../utils/email.js";
+import { syncDoctorToDoctorService } from "../utils/doctorServiceSync.js";
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -127,6 +128,11 @@ export async function login(req, res) {
     }
 
     const token = signToken(user);
+
+    if (user.role === "doctor" && user.doctorVerificationStatus === "verified") {
+      // Non-blocking best-effort sync into doctor-service so patients can list doctors.
+      syncDoctorToDoctorService(user);
+    }
 
     return res.json({
       message: "Login successful.",

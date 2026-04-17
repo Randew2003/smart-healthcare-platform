@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import MainLayout from "./../../layouts/MainLayout";
 import { api } from "./../../utils/api";
 import { getUser, isLoggedIn } from "./../../utils/auth";
 import { submitPayHereCheckout } from "./../../utils/payhereCheckout";
 
 export default function BookAppointment() {
+  const [searchParams] = useSearchParams();
+  const doctorIdFromQuery = searchParams.get("doctorId") || "";
+
   const user = getUser();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,13 +16,21 @@ export default function BookAppointment() {
 
   const [form, setForm] = useState({
     patientId: user?.id || user?._id || "PATIENT123",
-    doctorId: "",
+    doctorId: doctorIdFromQuery,
     date: "",
     time: "",
     notes: "",
     patientEmail: user?.email || "",
     patientPhone: user?.phone || ""
   });
+
+  useEffect(() => {
+    if (!doctorIdFromQuery) return;
+    setForm((prev) => ({
+      ...prev,
+      doctorId: prev.doctorId || doctorIdFromQuery
+    }));
+  }, [doctorIdFromQuery]);
 
   const appointmentFee = 1500;
 

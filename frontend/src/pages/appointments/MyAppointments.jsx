@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
 import { getUser, isLoggedIn } from "../../utils/auth";
+import { useDoctorServiceId } from "../doctor/doctorUtils";
 
 export default function MyAppointments() {
   const user = getUser();
+  const { doctorId, resolving } = useDoctorServiceId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [appointments, setAppointments] = useState([]);
@@ -18,8 +20,19 @@ export default function MyAppointments() {
 
     try {
       const userId = user?.id || user?._id || "UNKNOWN_USER";
+
+      if (user?.role === "doctor") {
+        if (!doctorId) {
+          setAppointments([]);
+          if (!resolving) {
+            setError("Doctor profile not found in doctor-service. Ask admin to verify/sync your doctor profile.");
+          }
+          return;
+        }
+      }
+
       const endpoint = user?.role === "doctor"
-        ? `/api/appointments/doctor/${encodeURIComponent(userId)}`
+        ? `/api/appointments/doctor/${encodeURIComponent(doctorId)}`
         : `/api/appointments/patient/${encodeURIComponent(userId)}`;
 
       const { data } = await api.get(endpoint);
@@ -34,7 +47,7 @@ export default function MyAppointments() {
 
   useEffect(() => {
     loadMyAppointments();
-  }, []);
+  }, [doctorId, resolving]);
 
   return (
     <MainLayout>
