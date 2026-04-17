@@ -52,8 +52,6 @@ router.get("/:id", getDoctorById); // Route to get single doctor by ID(GET /api/
 router.put("/:id", updateDoctor); //  Route to update doctor(PUT /api/doctors/:id)
 router.delete("/:id", deleteDoctor); // Route to delete doctor(DELETE /api/doctors/:id)
 
-// Dashboard route
-router.get("/:id/dashboard", getDoctorDashboard);
 
 // Availability routes
 router.post("/:id/availability", addAvailability); // Route to add availability for a doctor(POST /api/doctors/:id/availability)
