@@ -82,20 +82,20 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-[#f4f9ff] text-slate-900">
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(132,204,22,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_24%),linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b1220_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_30%),radial-gradient(circle_at_top_right,rgba(96,165,250,0.12),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)]" />
         <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
           <section className="lg:col-span-5">
-            <div className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-lime-200 backdrop-blur">
+            <div className="inline-flex items-center rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-blue-700 shadow-sm">
               Admin Access
             </div>
 
-            <h1 className="mt-6 max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h1 className="mt-6 max-w-xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
               Sign in to the admin control panel.
             </h1>
 
-            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
+            <p className="mt-5 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
               Access management tools, verify doctors, and supervise the
               platform from a secure admin-only workspace.
             </p>
@@ -109,7 +109,7 @@ export default function AdminLogin() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl border border-white/10 bg-white/6 p-4 text-sm text-slate-200 shadow-lg shadow-black/10 backdrop-blur"
+                  className="rounded-2xl border border-blue-100 bg-white p-4 text-sm text-slate-700 shadow-[0_10px_30px_rgba(37,99,235,0.06)]"
                 >
                   {item}
                 </div>
@@ -118,12 +118,12 @@ export default function AdminLogin() {
           </section>
 
           <section className="lg:col-span-7">
-            <div className="rounded-3xl border border-white/10 bg-white/95 p-6 text-slate-900 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">
+            <div className="rounded-[28px] border border-blue-100 bg-white/95 p-6 text-slate-900 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-8 lg:p-10">
               <div className="mb-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-lime-700">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-700">
                   Admin Login
                 </p>
-                <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
                   Welcome back
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
@@ -133,7 +133,7 @@ export default function AdminLogin() {
               </div>
 
               {error && (
-                <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                   {error}
                 </div>
               )}
@@ -147,7 +147,7 @@ export default function AdminLogin() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                    className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
 
@@ -159,14 +159,14 @@ export default function AdminLogin() {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter your password"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-lime-500 focus:bg-white focus:ring-4 focus:ring-lime-100"
+                    className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`inline-flex items-center justify-center rounded-xl bg-linear-to-r from-lime-600 to-amber-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-lime-500/20 transition hover:shadow-xl hover:shadow-lime-500/25 ${
+                  className={`inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-blue-600 to-cyan-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:shadow-xl hover:shadow-blue-500/25 ${
                     loading ? "cursor-not-allowed opacity-70" : ""
                   }`}
                 >
@@ -176,13 +176,13 @@ export default function AdminLogin() {
 
               <div className="mt-6 text-sm text-slate-600">
                 Don&apos;t have an admin account?{" "}
-                <Link to="/admin/register" className="font-semibold text-lime-700 transition hover:text-lime-800">
+                <Link to="/admin/register" className="font-semibold text-blue-700 transition hover:text-blue-800">
                   Register here
                 </Link>
               </div>
 
               <div className="mt-3 text-sm text-slate-600">
-                <Link to={forgotLink} className="font-semibold text-lime-700 transition hover:text-lime-800">
+                <Link to={forgotLink} className="font-semibold text-blue-700 transition hover:text-blue-800">
                   Forgot password?
                 </Link>
               </div>
