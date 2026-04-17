@@ -5,7 +5,7 @@ import axios from "axios";
 // Create appointment
 export const createAppointment = async (req, res) => {
   try {
-    const { patientId, doctorId, date, time, patientEmail, patientPhone } = req.body;
+    const { patientId, doctorId, date, time, notes, patientEmail, patientPhone } = req.body;
 
     // Basic validation
     if (!patientId || !doctorId || !date || !time) {
@@ -28,7 +28,8 @@ export const createAppointment = async (req, res) => {
       patientId,
       doctorId,
       date,
-      time
+      time,
+      notes
     });
 
     // Generate meeting link (for video consultation)
@@ -77,7 +78,7 @@ export const getAppointmentsByPatient = async (req, res) => {
   try {
     const { patientId } = req.params;
 
-    const appointments = await Appointment.find({ patientId });
+    const appointments = await Appointment.find({ patientId }).sort({ createdAt: -1 });
 
     // 🔥 Enrich with doctor data
     const enrichedAppointments = await Promise.all(
