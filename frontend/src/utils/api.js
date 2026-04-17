@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken, logout } from "./auth";
 
 export const api = axios.create({
-  baseURL: "",
+  baseURL: "http://localhost:4000",
   headers: {
     "Content-Type": "application/json"
   }

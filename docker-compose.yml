@@ -99,20 +99,7 @@ services:
     depends_on:
       - mongo
 
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    restart: unless-stopped
-    ports:
-      - "3000:80"
-    depends_on:
-      - auth-admin-service
-      - appointment-service
-      - patient-service
-      - doctor-service
-      - telemedicine-service
-      - payment-service
-      - notification-service
+  
       
 volumes:
   mongo_data:
