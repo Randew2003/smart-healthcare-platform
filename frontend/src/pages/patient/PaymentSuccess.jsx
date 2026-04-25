@@ -4,38 +4,40 @@ import MainLayout from "../../layouts/MainLayout";
 export default function PaymentSuccess() {
   return (
     <MainLayout>
-      <section className="bg-[#f5fbff]">
-        <div className="mx-auto flex min-h-[70vh] w-full max-w-5xl items-center px-4 py-12 sm:px-6 lg:px-8">
-          <div className="w-full rounded-[28px] border border-[#d9edf9] bg-white p-8 shadow-sm sm:p-10">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-extrabold uppercase tracking-[0.3em] text-[#00bbb3]">
-                Payment Status
-              </p>
+      <section className="bg-[#F6FAFD] text-slate-800">
+        <div className="mx-auto flex min-h-[75vh] w-full max-w-6xl items-center justify-center px-6 py-16 lg:px-8">
+          <div className="w-full rounded-2xl border border-[#D8EAF6] bg-white p-10 text-center shadow-sm lg:p-14">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#35B85A]/10 text-3xl text-[#35B85A]">
+              ✓
+            </div>
 
-              <h1 className="mt-3 text-4xl font-extrabold text-[#02539d] sm:text-5xl">
-                Payment Successful
-              </h1>
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-[#35B85A]">
+              Payment Status
+            </p>
 
-              <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                Your payment was completed successfully. You can view your
-                payment history or return to your appointments.
-              </p>
+            <h1 className="mt-4 text-4xl font-bold text-[#2459A6] sm:text-5xl">
+              Payment Successful
+            </h1>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  to="/payments"
-                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-[#0070cd] px-6 text-sm font-extrabold text-white transition hover:bg-[#02539d]"
-                >
-                  View Payments
-                </Link>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+              Your payment was completed successfully. You can view your payment
+              history or return to your appointments.
+            </p>
 
-                <Link
-                  to="/appointments"
-                  className="inline-flex h-12 items-center justify-center rounded-2xl border border-[#00bbb3]/30 bg-[#00bbb3]/10 px-6 text-sm font-extrabold text-[#0070cd] transition hover:bg-[#00bbb3]/20"
-                >
-                  Back to Appointments
-                </Link>
-              </div>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/payments"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[#2477B8] px-6 text-sm font-semibold text-white transition hover:bg-[#2459A6]"
+              >
+                View Payments
+              </Link>
+
+              <Link
+                to="/appointments"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-[#2477B8]/30 bg-[#EAF6FF] px-6 text-sm font-semibold text-[#2477B8] transition hover:bg-[#2477B8] hover:text-white"
+              >
+                Back to Appointments
+              </Link>
             </div>
           </div>
         </div>

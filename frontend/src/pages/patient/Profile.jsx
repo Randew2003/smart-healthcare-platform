@@ -18,6 +18,9 @@ export default function Profile() {
   const [gender, setGender] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
 
+  const inputClass =
+    "mt-2 h-11 w-full rounded-md border border-slate-200 bg-[#F6FAFD] px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#2477B8] focus:bg-white focus:ring-2 focus:ring-[#2477B8]/15";
+
   const load = async () => {
     if (!isLoggedIn()) return;
 
@@ -69,10 +72,10 @@ export default function Profile() {
           phone,
           address,
           gender,
-          bloodGroup
+          bloodGroup,
         });
         setProfile(data?.patient);
-        setMessage(data?.message || "Profile created.");
+        setMessage(data?.message || "Profile created successfully.");
       } else {
         const { data } = await api.put("/api/patients/me", {
           fullName,
@@ -80,10 +83,10 @@ export default function Profile() {
           phone,
           address,
           gender,
-          bloodGroup
+          bloodGroup,
         });
         setProfile(data?.patient);
-        setMessage(data?.message || "Profile updated.");
+        setMessage(data?.message || "Profile updated successfully.");
       }
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to save profile.");
@@ -92,97 +95,175 @@ export default function Profile() {
     }
   };
 
-  const inputClass =
-    "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20";
-
   return (
     <MainLayout>
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-[170px]">
-        <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="bg-[#F6FAFD] text-slate-800">
+        <div className="mx-auto w-full max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div>
-              <h1 className="text-2xl font-black text-slate-900">Patient Profile</h1>
-              <p className="mt-1 text-sm text-slate-600">Manage your basic patient information.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#35B85A]">
+                Patient Profile
+              </p>
+
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#2459A6] sm:text-4xl">
+                Manage Your Patient Information
+              </h1>
             </div>
 
-            <div className="text-xs text-slate-600">
-              User ID: <span className="font-mono font-semibold">{user?.id || "-"}</span>
-            </div>
+            <p className="text-sm leading-7 text-slate-600 sm:text-base">
+              Keep your details accurate so appointments, payments, and
+              healthcare communication can work smoothly.
+            </p>
           </div>
 
-          {!isLoggedIn() ? (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              Login to manage your profile.
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-              {error}
-            </div>
-          ) : null}
-
-          {message ? (
-            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
-              {message}
-            </div>
-          ) : null}
-
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="rounded-full border border-[#80c342]/30 bg-[#80c342]/10 px-3 py-1 text-xs font-extrabold text-[#2f6b14]">
-                {profile ? "Profile exists" : "No profile yet"}
+          <div className="mt-10 rounded-2xl border border-[#D8EAF6] bg-white p-6 shadow-sm lg:p-8">
+            <div className="flex flex-col gap-4 border-b border-[#D8EAF6] pb-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-[#2459A6]">
+                  Basic Profile Details
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Update your contact and health-related information.
+                </p>
               </div>
+
               <div className="text-xs text-slate-500">
-                Keep your info accurate for appointments & payments.
+                User ID:{" "}
+                <span className="font-mono font-semibold text-[#2477B8]">
+                  {user?.id || "-"}
+                </span>
               </div>
             </div>
 
-            <form onSubmit={save} className="mt-5 grid gap-4">
-              <div className="grid gap-3 md:grid-cols-2">
+            {!isLoggedIn() && (
+              <div className="mt-5 rounded-xl border border-[#D8EAF6] bg-[#F6FAFD] px-5 py-3 text-sm text-slate-600">
+                Please login to manage your profile.
+              </div>
+            )}
+
+            {error && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700">
+                {error}
+              </div>
+            )}
+
+            {message && (
+              <div className="mt-5 rounded-xl border border-[#35B85A]/25 bg-[#35B85A]/10 px-5 py-3 text-sm font-semibold text-[#23823d]">
+                {message}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D8EAF6] bg-[#F6FAFD] px-5 py-4">
+              <span className="rounded-md bg-[#EAF6FF] px-3 py-1 text-xs font-semibold text-[#2477B8]">
+                {profile ? "Profile exists" : "No profile yet"}
+              </span>
+
+              <span className="text-xs text-slate-500">
+                Keep your info accurate for appointments & payments.
+              </span>
+            </div>
+
+            <form onSubmit={save} className="mt-7 grid gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Full name</label>
-                  <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Full Name
+                  </label>
+                  <input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={inputClass}
+                    placeholder="Enter full name"
+                  />
                 </div>
+
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Phone</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Phone
+                  </label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className={inputClass}
+                    placeholder="Enter phone number"
+                  />
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Email</label>
-                  <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Email
+                  </label>
+                  <input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    className={inputClass}
+                    placeholder="Enter email address"
+                  />
                 </div>
+
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Gender</label>
-                  <input value={gender} onChange={(e) => setGender(e.target.value)} placeholder="male/female/other" className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Gender
+                  </label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Blood group</label>
-                  <input value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)} placeholder="O+" className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Blood Group
+                  </label>
+                  <input
+                    value={bloodGroup}
+                    onChange={(e) => setBloodGroup(e.target.value)}
+                    placeholder="Example: O+"
+                    className={inputClass}
+                  />
                 </div>
+
                 <div>
-                  <label className="text-xs font-extrabold text-slate-700">Address</label>
-                  <input value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
+                  <label className="text-sm font-semibold text-slate-700">
+                    Address
+                  </label>
+                  <input
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className={inputClass}
+                    placeholder="Enter address"
+                  />
                 </div>
               </div>
 
-              <button
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421] disabled:opacity-60"
-                type="submit"
-              >
-                {loading ? "Saving..." : profile ? "Update profile" : "Create profile"}
-              </button>
+              <div className="pt-2">
+                <button
+                  disabled={loading}
+                  className="inline-flex h-11 items-center justify-center rounded-md bg-[#2477B8] px-6 text-sm font-semibold text-white transition hover:bg-[#2459A6] disabled:opacity-60"
+                  type="submit"
+                >
+                  {loading
+                    ? "Saving..."
+                    : profile
+                    ? "Update Profile"
+                    : "Create Profile"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
-      </div>
+      </section>
     </MainLayout>
   );
 }

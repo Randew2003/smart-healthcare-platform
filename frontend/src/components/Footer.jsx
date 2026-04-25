@@ -1,13 +1,11 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/logo01.png";
+import logo from "../assets/logo.png";
 
 const quickLinks = [
   { label: "Home", to: "/" },
   { label: "Doctors", to: "/doctors" },
   { label: "Services", to: "/services" },
   { label: "Contact", to: "/contact" },
-  { label: "Login", to: "/login" },
-  { label: "Register", to: "/register" },
 ];
 
 const servicesLinks = [
@@ -17,68 +15,56 @@ const servicesLinks = [
   { label: "Medical Records", to: "/profile" },
 ];
 
+const supportLinks = [
+  { label: "Help Center", to: "/contact" },
+  { label: "Privacy Policy", to: "/privacy" },
+  { label: "Terms & Conditions", to: "/terms" },
+  { label: "Data Protection", to: "/privacy" },
+];
+
 export default function Footer() {
   return (
-    <footer className="mt-16 text-white font-sans">
-
+    <footer className="mt-20 font-sans">
+      
       {/* 🔹 MAIN FOOTER */}
-      <div className="bg-[#0070cd]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 py-14 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
+      <div className="border-t border-[#D8EAF6] bg-[#F6FAFD]">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-14 lg:grid-cols-12 lg:px-8">
 
-          {/* Brand */}
-          <div className="lg:col-span-4">
-            <div className="mb-6">
-              <img
-                src={logo}
-                alt="healthCare"
-                className="h-14 w-auto object-contain sm:h-16"
-              />
-            </div>
+          {/* BRAND */}
+          <div className="lg:col-span-5">
+            <img
+              src={logo}
+              alt="HealthCare"
+              className="mb-6 h-[48px] w-auto object-contain"  // 🔥 increased size
+            />
 
-            <p className="max-w-md text-sm leading-7 text-white/90 sm:text-[15px]">
-              healthCare is a smart healthcare platform for appointments,
-              telemedicine, medical records, and secure online payments.
+            <p className="max-w-md text-sm leading-7 text-slate-600">
+              HealthCare helps patients connect with doctors, manage
+              appointments, access telemedicine services, and complete secure
+              healthcare payments online.
             </p>
 
-            <div className="mt-8 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-white/90">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
-                  📧
-                </span>
-                <span>support@healthcare.com</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm text-white/90">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
-                  📞
-                </span>
-                <span>+94 11 234 5678</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-sm text-white/90">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
-                  ⏰
-                </span>
-                <span>24/7 Support Available</span>
-              </div>
+            <div className="mt-6 space-y-2 text-sm text-slate-600">
+              <p>support@healthcare.com</p>
+              <p>+94 11 234 5678</p>
+              <p>24/7 Patient Support</p>
             </div>
           </div>
 
-          {/* Links */}
-          <div className="grid gap-10 sm:grid-cols-2 lg:col-span-8 lg:grid-cols-3">
+          {/* LINKS */}
+          <div className="grid gap-10 sm:grid-cols-3 lg:col-span-7 lg:justify-self-end lg:w-[650px]">
 
-            {/* Quick Links */}
             <div>
-              <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-white">
+              <h3 className="mb-4 text-sm font-semibold text-[#2459A6]">
                 Quick Links
               </h3>
 
-              <ul className="space-y-3">
+              <ul className="space-y-2.5">
                 {quickLinks.map((item) => (
                   <li key={item.label}>
                     <Link
                       to={item.to}
-                      className="text-sm text-white/80 transition hover:translate-x-1 hover:text-white"
+                      className="text-sm text-slate-600 transition hover:text-[#1F8DD6]"
                     >
                       {item.label}
                     </Link>
@@ -87,18 +73,17 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Services */}
             <div>
-              <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-white">
+              <h3 className="mb-4 text-sm font-semibold text-[#2459A6]">
                 Services
               </h3>
 
-              <ul className="space-y-3">
+              <ul className="space-y-2.5">
                 {servicesLinks.map((item) => (
                   <li key={item.label}>
                     <Link
                       to={item.to}
-                      className="text-sm text-white/80 transition hover:translate-x-1 hover:text-white"
+                      className="text-sm text-slate-600 transition hover:text-[#1F8DD6]"
                     >
                       {item.label}
                     </Link>
@@ -107,17 +92,22 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Support */}
             <div>
-              <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-white">
+              <h3 className="mb-4 text-sm font-semibold text-[#2459A6]">
                 Support
               </h3>
 
-              <ul className="space-y-3 text-sm text-white/80">
-                <li>support@healthcare.com</li>
-                <li>+94 11 234 5678</li>
-                <li>24/7 Customer Care</li>
-                <li>Secure Health Data Protection</li>
+              <ul className="space-y-2.5">
+                {supportLinks.map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      to={item.to}
+                      className="text-sm text-slate-600 transition hover:text-[#1F8DD6]"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -125,13 +115,21 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* 🔹 BOTTOM BAR */}
-      <div className="bg-[#00bbb3]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 text-sm text-white/90 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <p>© 2026 healthCare. All Rights Reserved.</p>
-          <p>We Protect Your Health</p>
+      {/* 🔹 BOTTOM BAR (FIXED ALIGNMENT) */}
+      <div className="border-t border-[#D8EAF6] bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 text-sm text-slate-500 lg:px-8">
+          
+          {/* LEFT */}
+          <p>© 2026 HealthCare. All rights reserved.</p>
+
+          {/* RIGHT (perfect align now) */}
+          <p className="text-[#35B85A]">
+            Secure care, simple access, better health.
+          </p>
+
         </div>
       </div>
+
     </footer>
   );
 }
