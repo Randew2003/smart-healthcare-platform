@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 // Availability sub-schema for doctor's available time slots
 const availabilitySchema = new mongoose.Schema(
   {
+    date: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     day: {
       type: String,
       required: [true, "Day is required"],

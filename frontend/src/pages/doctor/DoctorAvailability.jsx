@@ -3,17 +3,40 @@ import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
 import { isLoggedIn } from "../../utils/auth";
 import { normalizeApiPayload, useDoctorServiceId } from "./doctorUtils";
-import banner from "../../assets/banner2.png";
+import banner from "../../assets/patientassets/banner2.png";
 
-const dayOptions = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday"
-];
+function getDayFromDate(dateValue) {
+  if (!dateValue) return "";
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function addSixHours(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(String(timeValue || ""))) return "";
+
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  const totalMinutes = hours * 60 + minutes + 6 * 60;
+  const endHours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const endMinutes = totalMinutes % 60;
+
+  return `${String(endHours).padStart(2, "0")}:${String(endMinutes).padStart(2, "0")}`;
+}
+
+function formatSlotDate(dateValue) {
+  if (!dateValue) return "-";
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+
+  return date.toLocaleDateString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
 
 export default function DoctorAvailability() {
   const { doctorId, setDoctorId, resolving, resolvedFrom } = useDoctorServiceId();
@@ -27,14 +50,12 @@ export default function DoctorAvailability() {
   const [specialization, setSpecialization] = useState("");
   const [availability, setAvailability] = useState([]);
 
-  const [day, setDay] = useState("Monday");
+  const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
 
   const [editingId, setEditingId] = useState("");
-  const [editDay, setEditDay] = useState("Monday");
+  const [editDate, setEditDate] = useState("");
   const [editStartTime, setEditStartTime] = useState("");
-  const [editEndTime, setEditEndTime] = useState("");
   const [editBooked, setEditBooked] = useState(false);
 
   const load = useCallback(async () => {
@@ -80,8 +101,18 @@ export default function DoctorAvailability() {
       return;
     }
 
-    if (!day || !startTime || !endTime) {
-      setError("Day, start time, and end time are required.");
+    if (!date || !startTime) {
+      setError("Date and start time are required.");
+      return;
+    }
+
+    const selectedDay = getDayFromDate(date);
+    const duplicateDay = availability.find(
+      (slot) => String(slot?.day || "").toLowerCase() === selectedDay.toLowerCase()
+    );
+
+    if (duplicateDay) {
+      setError(`You already have an availability slot for ${selectedDay}. Choose a different date.`);
       return;
     }
 
@@ -91,14 +122,13 @@ export default function DoctorAvailability() {
 
     try {
       const { data } = await api.post(`/api/doctors/${encodeURIComponent(doctorId)}/availability`, {
-        day,
-        startTime,
-        endTime
+        date,
+        startTime
       });
 
       setMessage(data?.message || "Availability slot added.");
+      setDate("");
       setStartTime("");
-      setEndTime("");
       await load();
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to add availability slot.");
@@ -109,9 +139,8 @@ export default function DoctorAvailability() {
 
   const beginEdit = (slot) => {
     setEditingId(slot?._id || "");
-    setEditDay(slot?.day || "Monday");
+    setEditDate(slot?.date || "");
     setEditStartTime(slot?.startTime || "");
-    setEditEndTime(slot?.endTime || "");
     setEditBooked(!!slot?.isBooked);
   };
 
@@ -122,6 +151,23 @@ export default function DoctorAvailability() {
   const saveEdit = async () => {
     if (!editingId) return;
 
+    if (!editDate || !editStartTime) {
+      setError("Date and start time are required.");
+      return;
+    }
+
+    const selectedDay = getDayFromDate(editDate);
+    const duplicateDay = availability.find(
+      (slot) =>
+        String(slot?._id) !== String(editingId) &&
+        String(slot?.day || "").toLowerCase() === selectedDay.toLowerCase()
+    );
+
+    if (duplicateDay) {
+      setError(`You already have an availability slot for ${selectedDay}. Choose a different date.`);
+      return;
+    }
+
     setSaving(true);
     setError("");
     setMessage("");
@@ -130,9 +176,8 @@ export default function DoctorAvailability() {
       const { data } = await api.put(
         `/api/doctors/${encodeURIComponent(doctorId)}/availability/${encodeURIComponent(editingId)}`,
         {
-          day: editDay,
+          date: editDate,
           startTime: editStartTime,
-          endTime: editEndTime,
           isBooked: editBooked
         }
       );
@@ -169,9 +214,13 @@ export default function DoctorAvailability() {
   };
 
   const bookedCount = useMemo(
-    () => availability.filter((s) => s?.isBooked).length,
+    () => availability.filter((slot) => slot?.isBooked).length,
     [availability]
   );
+  const selectedDay = useMemo(() => getDayFromDate(date), [date]);
+  const calculatedEndTime = useMemo(() => addSixHours(startTime), [startTime]);
+  const editSelectedDay = useMemo(() => getDayFromDate(editDate), [editDate]);
+  const editCalculatedEndTime = useMemo(() => addSixHours(editStartTime), [editStartTime]);
 
   const inputClass =
     "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20";
@@ -253,25 +302,35 @@ export default function DoctorAvailability() {
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <h2 className="text-base font-black text-slate-900">Add slot</h2>
+              <div className="mt-4 rounded-2xl border border-[#00bbb3]/20 bg-[#00bbb3]/10 p-4">
+                <div className="text-sm font-black text-slate-900">Availability rule</div>
+                <p className="mt-2 text-sm text-slate-700">
+                  Each availability slot covers exactly 6 hours from the selected start time. A doctor can only keep one slot for each weekday, so if one Sunday is already added, another Sunday cannot be added again.
+                </p>
+              </div>
+
               <form onSubmit={addSlot} className="mt-4 grid gap-3">
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>
-                    <label className="text-xs font-extrabold text-slate-700">Day</label>
-                    <select value={day} onChange={(e) => setDay(e.target.value)} className={inputClass}>
-                      {dayOptions.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="text-xs font-extrabold text-slate-700">Date</label>
+                    <input value={date} onChange={(e) => setDate(e.target.value)} type="date" className={inputClass} />
                   </div>
                   <div>
-                    <label className="text-xs font-extrabold text-slate-700">Start</label>
+                    <label className="text-xs font-extrabold text-slate-700">Start time</label>
                     <input value={startTime} onChange={(e) => setStartTime(e.target.value)} type="time" className={inputClass} />
                   </div>
                   <div>
-                    <label className="text-xs font-extrabold text-slate-700">End</label>
-                    <input value={endTime} onChange={(e) => setEndTime(e.target.value)} type="time" className={inputClass} />
+                    <label className="text-xs font-extrabold text-slate-700">End time</label>
+                    <input value={calculatedEndTime} readOnly type="time" className={`${inputClass} bg-slate-50 text-slate-500`} />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    Selected day: <span className="font-bold text-slate-900">{selectedDay || "-"}</span>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    Slot duration: <span className="font-bold text-slate-900">6 hours</span>
                   </div>
                 </div>
 
@@ -280,7 +339,7 @@ export default function DoctorAvailability() {
                   className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421] disabled:opacity-60"
                   type="submit"
                 >
-                  {saving ? "Saving..." : "Add slot"}
+                  {saving ? "Saving..." : "Add availability slot"}
                 </button>
               </form>
             </div>
@@ -318,7 +377,7 @@ export default function DoctorAvailability() {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <div className="text-sm font-black text-slate-900">
-                          {slot?.day || "-"} • {slot?.startTime || "-"} - {slot?.endTime || "-"}
+                          {slot?.day || "-"} | {formatSlotDate(slot?.date)} | {slot?.startTime || "-"} - {slot?.endTime || "-"}
                         </div>
                         <div className="mt-1 text-xs text-slate-600">
                           Status: {slot?.isBooked ? "Booked" : "Available"}
@@ -348,22 +407,25 @@ export default function DoctorAvailability() {
                       <div className="mt-4 grid gap-3">
                         <div className="grid gap-3 sm:grid-cols-3">
                           <div>
-                            <label className="text-xs font-extrabold text-slate-700">Day</label>
-                            <select value={editDay} onChange={(e) => setEditDay(e.target.value)} className={inputClass}>
-                              {dayOptions.map((d) => (
-                                <option key={d} value={d}>
-                                  {d}
-                                </option>
-                              ))}
-                            </select>
+                            <label className="text-xs font-extrabold text-slate-700">Date</label>
+                            <input value={editDate} onChange={(e) => setEditDate(e.target.value)} type="date" className={inputClass} />
                           </div>
                           <div>
-                            <label className="text-xs font-extrabold text-slate-700">Start</label>
+                            <label className="text-xs font-extrabold text-slate-700">Start time</label>
                             <input value={editStartTime} onChange={(e) => setEditStartTime(e.target.value)} type="time" className={inputClass} />
                           </div>
                           <div>
-                            <label className="text-xs font-extrabold text-slate-700">End</label>
-                            <input value={editEndTime} onChange={(e) => setEditEndTime(e.target.value)} type="time" className={inputClass} />
+                            <label className="text-xs font-extrabold text-slate-700">End time</label>
+                            <input value={editCalculatedEndTime} readOnly type="time" className={`${inputClass} bg-slate-50 text-slate-500`} />
+                          </div>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                            Selected day: <span className="font-bold text-slate-900">{editSelectedDay || "-"}</span>
+                          </div>
+                          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                            Slot duration: <span className="font-bold text-slate-900">6 hours</span>
                           </div>
                         </div>
 

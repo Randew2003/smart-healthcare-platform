@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
 import { isLoggedIn } from "../../utils/auth";
-import banner from "../../assets/banner3.png";
+import banner from "../../assets/patientassets/banner3.png";
 import {
   formatDateTime,
   normalizeApiPayload,

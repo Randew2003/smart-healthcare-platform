@@ -95,7 +95,7 @@ export default function Header() {
 
         {/* NAV */}
         <nav className="hidden items-center justify-center gap-8 lg:flex">
-          {!isAdmin && (
+          {!isAdmin && !isDoctor && (
             <NavLink to="/" end className={navClass}>
               Home
             </NavLink>
@@ -110,10 +110,13 @@ export default function Header() {
             </>
           ) : isDoctor ? (
             <>
-              <NavLink to="/appointments" className={navClass}>Appointments</NavLink>
-              <NavLink to="/telemedicine" className={navClass}>Telemedicine</NavLink>
-              <NavLink to="/services" className={navClass}>Services</NavLink>
-              <NavLink to="/contact" className={navClass}>Contact</NavLink>
+              <NavLink to="/doctor" end className={navClass}>Dashboard</NavLink>
+              <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
+              {/* <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink> */}
+              <NavLink to="/doctor/prescriptions" className={navClass}>Prescriptions</NavLink>
+              {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
+              <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
+              <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>
             </>
           ) : (
             <>
@@ -165,12 +168,33 @@ export default function Header() {
       {/* MOBILE NAV */}
       <div className="border-t border-slate-100 bg-white px-5 py-2 lg:hidden">
         <nav className="flex flex-wrap justify-center gap-5">
-          <NavLink to="/" className={navClass}>Home</NavLink>
-          <NavLink to="/doctors" className={navClass}>Doctors</NavLink>
-          <NavLink to="/appointments" className={navClass}>Appointments</NavLink>
-          <NavLink to="/payments" className={navClass}>Payments</NavLink>
-          <NavLink to="/services" className={navClass}>Services</NavLink>
-          <NavLink to="/contact" className={navClass}>Contact</NavLink>
+          {isAdmin ? (
+            <>
+              <NavLink to="/admin" end className={navClass}>Dashboard</NavLink>
+              <NavLink to="/admin/appointments" className={navClass}>Appointments</NavLink>
+              <NavLink to="/admin/users" className={navClass}>Users</NavLink>
+              <NavLink to="/admin/doctors" className={navClass}>Doctors</NavLink>
+            </>
+          ) : isDoctor ? (
+            <>
+              <NavLink to="/doctor" end className={navClass}>Dashboard</NavLink>
+              <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
+              <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink>
+              <NavLink to="/doctor/prescriptions" className={navClass}>Prescriptions</NavLink>
+              {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
+              <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
+              <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/" className={navClass}>Home</NavLink>
+              <NavLink to="/doctors" className={navClass}>Doctors</NavLink>
+              <NavLink to="/appointments" className={navClass}>Appointments</NavLink>
+              <NavLink to="/payments" className={navClass}>Payments</NavLink>
+              <NavLink to="/services" className={navClass}>Services</NavLink>
+              <NavLink to="/contact" className={navClass}>Contact</NavLink>
+            </>
+          )}
         </nav>
       </div>
     </header>

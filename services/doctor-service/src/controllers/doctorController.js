@@ -1,5 +1,28 @@
 const Doctor = require("../models/Doctor");
 
+function getDayFromDate(dateValue) {
+  const date = new Date(`${dateValue}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function addSixHours(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(String(timeValue || ""))) {
+    return "";
+  }
+
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  const totalMinutes = hours * 60 + minutes + 6 * 60;
+  const nextHours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const nextMinutes = totalMinutes % 60;
+
+  return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}`;
+}
+
 // CREATE doctor profile
 // POST /api/doctors
 exports.createDoctor = async (req, res) => {
@@ -130,7 +153,7 @@ exports.deleteDoctor = async (req, res) => {
 // ADD availability slot
 exports.addAvailability = async (req, res) => {
   try {
-    const { day, startTime, endTime } = req.body;
+    const { date, startTime } = req.body;
 
     const doctor = await Doctor.findById(req.params.id);
 
@@ -141,7 +164,43 @@ exports.addAvailability = async (req, res) => {
       });
     }
 
-    doctor.availability.push({ day, startTime, endTime });
+    if (!date || !startTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Date and start time are required",
+      });
+    }
+
+    const day = getDayFromDate(date);
+
+    if (!day) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid availability date",
+      });
+    }
+
+    const duplicateDay = doctor.availability.find(
+      (slot) => String(slot?.day || "").toLowerCase() === day.toLowerCase()
+    );
+
+    if (duplicateDay) {
+      return res.status(400).json({
+        success: false,
+        message: `Availability for ${day} already exists. Please choose a different date.`,
+      });
+    }
+
+    const endTime = addSixHours(startTime);
+
+    if (!endTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid start time",
+      });
+    }
+
+    doctor.availability.push({ date, day, startTime, endTime });
     await doctor.save();
 
     res.status(200).json({
@@ -185,7 +244,7 @@ exports.getAvailability = async (req, res) => {
 // UPDATE one availability slot
 exports.updateAvailability = async (req, res) => {
   try {
-    const { day, startTime, endTime, isBooked } = req.body;
+    const { date, startTime, isBooked } = req.body;
 
     const doctor = await Doctor.findById(req.params.id);
 
@@ -205,9 +264,47 @@ exports.updateAvailability = async (req, res) => {
       });
     }
 
-    if (day !== undefined) slot.day = day;
-    if (startTime !== undefined) slot.startTime = startTime;
-    if (endTime !== undefined) slot.endTime = endTime;
+    if (date !== undefined) {
+      const nextDay = getDayFromDate(date);
+
+      if (!nextDay) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid availability date",
+        });
+      }
+
+      const duplicateDay = doctor.availability.find(
+        (entry) =>
+          String(entry?._id) !== String(slot._id) &&
+          String(entry?.day || "").toLowerCase() === nextDay.toLowerCase()
+      );
+
+      if (duplicateDay) {
+        return res.status(400).json({
+          success: false,
+          message: `Availability for ${nextDay} already exists. Please choose a different date.`,
+        });
+      }
+
+      slot.date = date;
+      slot.day = nextDay;
+    }
+
+    if (startTime !== undefined) {
+      const nextEndTime = addSixHours(startTime);
+
+      if (!nextEndTime) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid start time",
+        });
+      }
+
+      slot.startTime = startTime;
+      slot.endTime = nextEndTime;
+    }
+
     if (isBooked !== undefined) slot.isBooked = isBooked;
 
     await doctor.save();
@@ -390,7 +487,7 @@ exports.getDoctorAppointments = async (req, res) => {
 
     // Call appointment-service API
     const response = await fetch(
-      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/doctor/${req.params.id}`
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/doctor/${req.params.id}`
     );
 
     if (!response.ok) {
@@ -429,7 +526,7 @@ exports.acceptAppointment = async (req, res) => {
     }
 
     const response = await fetch(
-      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/${req.params.appointmentId}/status`,
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/${req.params.appointmentId}/status`,
       {
         method: "PUT",
         headers: {
@@ -463,6 +560,54 @@ exports.acceptAppointment = async (req, res) => {
   }
 };
 
+// COMPLETE appointment by updating status in appointment-service
+// PUT /api/doctors/:id/appointments/:appointmentId/complete
+exports.completeAppointment = async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const response = await fetch(
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/${req.params.appointmentId}/status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "Completed",
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message: result.message || "Failed to complete appointment",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Meeting ended successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // REJECT appointment by updating status in appointment-service
 // PUT /api/doctors/:id/appointments/:appointmentId/reject
 exports.rejectAppointment = async (req, res) => {
@@ -477,7 +622,7 @@ exports.rejectAppointment = async (req, res) => {
     }
 
     const response = await fetch(
-      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/${req.params.appointmentId}/status`,
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/${req.params.appointmentId}/status`,
       {
         method: "PUT",
         headers: {
@@ -866,7 +1011,7 @@ exports.getDoctorDashboard = async (req, res) => {
 
     // Get appointments from appointment-service
     const response = await fetch(
-      `${process.env.APPOINTMENT_SERVICE_URL}/appointments/doctor/${doctorId}`
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/doctor/${doctorId}`
     );
 
     let appointments = [];
