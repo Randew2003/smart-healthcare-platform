@@ -3,13 +3,14 @@ import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
 import { getUser, isLoggedIn } from "../../utils/auth";
 import { normalizeApiPayload, useDoctorServiceId } from "./doctorUtils";
-import banner from "../../assets/banner2.png";
+import banner from "../../assets/patientassets/banner2.png";
 
 export default function DoctorProfile() {
   const user = getUser();
   const { doctorId, setDoctorId, resolving, resolvedFrom } = useDoctorServiceId();
 
   const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [exists, setExists] = useState(false);
@@ -47,9 +48,11 @@ export default function DoctorProfile() {
       setBio(d?.bio || "");
       setLicenseNumber(d?.licenseNumber || "");
       setVerificationStatus(d?.verificationStatus || "");
+      setEditing(false);
     } catch (err) {
       if (err?.response?.status === 404) {
         setExists(false);
+        setEditing(true);
         setError("Doctor record not found in doctor-service. You can create it below.");
         return;
       }
@@ -104,9 +107,13 @@ export default function DoctorProfile() {
           setDoctorId(createdDoctor._id);
         }
         setExists(true);
+        setEditing(false);
         setMessage(data?.message || "Doctor profile created.");
       }
 
+      if (exists) {
+        setEditing(false);
+      }
       await load();
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to save doctor profile.");
@@ -117,6 +124,20 @@ export default function DoctorProfile() {
 
   const inputClass =
     "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20";
+  const detailCardClass = "rounded-2xl border border-slate-200 bg-slate-50/70 p-4";
+  const detailLabelClass = "text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500";
+  const detailValueClass = "mt-2 text-sm font-semibold text-slate-900";
+
+  const doctorDetails = [
+    { label: "Name", value: name || "-" },
+    { label: "Email", value: email || "-" },
+    { label: "Specialization", value: specialization || "-" },
+    { label: "Experience", value: `${Number(experience || 0)} years` },
+    { label: "Phone", value: phone || "-" },
+    { label: "Hospital", value: hospital || "-" },
+    { label: "License Number", value: licenseNumber || "-" },
+    { label: "Bio", value: bio || "-" }
+  ];
 
   return (
     <MainLayout>
@@ -208,65 +229,108 @@ export default function DoctorProfile() {
               </div>
             ) : null}
 
-            <form onSubmit={save} className="mt-5 grid gap-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Name</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+            {!editing && exists ? (
+              <div className="mt-5">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {doctorDetails.map((detail) => (
+                    <div key={detail.label} className={detailCardClass}>
+                      <div className={detailLabelClass}>{detail.label}</div>
+                      <div className={detailValueClass}>{detail.value}</div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Email</label>
-                  <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={inputClass} />
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(true);
+                      setMessage("");
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl border border-[#00bbb3]/20 bg-[#00bbb3]/10 px-4 py-2 text-sm font-black text-[#007c78] hover:bg-[#00bbb3]/15"
+                  >
+                    Edit
+                  </button>
                 </div>
               </div>
+            ) : (
+              <form onSubmit={save} className="mt-5 grid gap-4">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Name</label>
+                    <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Email</label>
+                    <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={inputClass} />
+                  </div>
+                </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Specialization</label>
-                  <input value={specialization} onChange={(e) => setSpecialization(e.target.value)} className={inputClass} />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Specialization</label>
+                    <input value={specialization} onChange={(e) => setSpecialization(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Experience (years)</label>
+                    <input
+                      value={experience}
+                      onChange={(e) => setExperience(Number(e.target.value || 0))}
+                      type="number"
+                      min={0}
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Experience (years)</label>
-                  <input
-                    value={experience}
-                    onChange={(e) => setExperience(Number(e.target.value || 0))}
-                    type="number"
-                    min={0}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Phone</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Phone</label>
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Hospital</label>
+                    <input value={hospital} onChange={(e) => setHospital(e.target.value)} className={inputClass} />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Hospital</label>
-                  <input value={hospital} onChange={(e) => setHospital(e.target.value)} className={inputClass} />
-                </div>
-              </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">License number</label>
-                  <input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className={inputClass} />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">License number</label>
+                    <input value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-extrabold text-slate-700">Bio</label>
+                    <input value={bio} onChange={(e) => setBio(e.target.value)} className={inputClass} />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-extrabold text-slate-700">Bio</label>
-                  <input value={bio} onChange={(e) => setBio(e.target.value)} className={inputClass} />
-                </div>
-              </div>
 
-              <button
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421] disabled:opacity-60"
-                type="submit"
-              >
-                {loading ? "Saving..." : exists ? "Update profile" : "Create profile"}
-              </button>
-            </form>
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  {exists ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditing(false);
+                        setError("");
+                        setMessage("");
+                        load();
+                      }}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  ) : null}
+
+                  <button
+                    disabled={loading}
+                    className="inline-flex items-center justify-center rounded-xl bg-[#80c342] px-4 py-2 text-sm font-black text-white hover:bg-[#60a421] disabled:opacity-60"
+                    type="submit"
+                  >
+                    {loading ? "Saving..." : exists ? "Update profile" : "Create profile"}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>
