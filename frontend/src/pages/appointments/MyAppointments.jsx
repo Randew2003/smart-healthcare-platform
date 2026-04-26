@@ -98,6 +98,19 @@ export default function MyAppointments() {
                   <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.notes || "N/A"}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
+
+                  {user?.role !== "doctor" && appt?.status === "Confirmed" && appt?.meetingLink ? (
+                    <div className="mt-4">
+                      <a
+                        href={appt.meetingLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
+                      >
+                        Join Meeting
+                      </a>
+                    </div>
+                  ) : null}
                 </div>
               ))}
 

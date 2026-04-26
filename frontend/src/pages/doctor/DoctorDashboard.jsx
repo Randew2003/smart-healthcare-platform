@@ -3,7 +3,7 @@ import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
 import { getUser, isLoggedIn } from "../../utils/auth";
 import { normalizeApiPayload, useDoctorServiceId } from "./doctorUtils";
-import banner from "../../assets/banner2.png";
+import banner from "../../assets/patientassets/banner2.png";
 
 export default function DoctorDashboard() {
   const user = getUser();

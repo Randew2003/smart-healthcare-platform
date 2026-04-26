@@ -17,6 +17,7 @@ const {
   rejectDoctor,
   getDoctorAppointments,
   acceptAppointment,
+  completeAppointment,
   rejectAppointment,
   getPatientProfile,
   getPatientMedicalHistory,
@@ -37,6 +38,7 @@ router.get("/pending", getPendingDoctors); // Route to get pending doctors for a
 // Appointment handling routes
 router.get("/:id/appointments", getDoctorAppointments);
 router.put("/:id/appointments/:appointmentId/accept", acceptAppointment);
+router.put("/:id/appointments/:appointmentId/complete", completeAppointment);
 router.put("/:id/appointments/:appointmentId/reject", rejectAppointment);
 
 // Patient record routes

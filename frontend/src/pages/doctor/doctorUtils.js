@@ -4,10 +4,6 @@ import { getUser, isLoggedIn } from "../../utils/auth";
 
 const STORAGE_KEY = "doctorServiceDoctorId";
 
-function isMongoObjectId(value) {
-  return /^[a-f\d]{24}$/i.test(String(value || ""));
-}
-
 export function useDoctorServiceId() {
   const user = getUser();
 
@@ -32,12 +28,6 @@ export function useDoctorServiceId() {
     if (!isLoggedIn()) return;
     if (doctorId) return;
 
-    if (user?.id && isMongoObjectId(user.id)) {
-      setDoctorId(user.id);
-      setResolvedFrom("auth user id");
-      return;
-    }
-
     if (!user?.email) return;
 
     setResolving(true);
@@ -52,14 +42,14 @@ export function useDoctorServiceId() {
 
       if (match?._id) {
         setDoctorId(match._id);
-        setResolvedFrom("email match");
+        setResolvedFrom("email match (doctor-service)");
       }
     } catch {
       // ignore
     } finally {
       setResolving(false);
     }
-  }, [doctorId, setDoctorId, user?.email, user?.id]);
+  }, [doctorId, setDoctorId, user?.email]);
 
   useEffect(() => {
     resolve();
