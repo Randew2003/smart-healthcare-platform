@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { getPrescriptionConnection } = require("../config/prescriptionDb");
 
 // Prescription schema
 const prescriptionSchema = new mongoose.Schema(
@@ -17,6 +18,11 @@ const prescriptionSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    prescriptionDate: {
+      type: Date,
+      required: [true, "Prescription date is required"],
+      default: Date.now,
     },
     diagnosis: {
       type: String,
@@ -58,4 +64,8 @@ const prescriptionSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Prescription", prescriptionSchema);
+const prescriptionConnection = getPrescriptionConnection();
+
+module.exports =
+  prescriptionConnection.models.Prescription ||
+  prescriptionConnection.model("Prescription", prescriptionSchema);

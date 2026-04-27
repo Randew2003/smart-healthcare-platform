@@ -113,7 +113,7 @@ export default function Header() {
               <NavLink to="/doctor" end className={navClass}>Dashboard</NavLink>
               <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
               {/* <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink> */}
-              <NavLink to="/doctor/prescriptions" className={navClass}>Prescriptions</NavLink>
+              <NavLink to="/doctor/prescriptions" className={navClass}>Prescription History</NavLink>
               {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
               <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
               <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>
@@ -180,7 +180,7 @@ export default function Header() {
               <NavLink to="/doctor" end className={navClass}>Dashboard</NavLink>
               <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
               <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink>
-              <NavLink to="/doctor/prescriptions" className={navClass}>Prescriptions</NavLink>
+              <NavLink to="/doctor/prescriptions" className={navClass}>Prescription History</NavLink>
               {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
               <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
               <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>
