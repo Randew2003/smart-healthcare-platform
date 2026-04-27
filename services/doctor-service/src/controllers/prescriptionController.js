@@ -66,6 +66,38 @@ exports.getDoctorPrescriptions = async (req, res) => {
   }
 };
 
+// GET prescriptions for a patient under a doctor
+// GET /api/doctors/:doctorId/prescriptions/patient/:patientId
+exports.getPrescriptionsByPatientId = async (req, res) => {
+  try {
+    const { doctorId, patientId } = req.params;
+
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    const prescriptions = await Prescription.find({ doctorId, patientId }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      count: prescriptions.length,
+      data: prescriptions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // GET single prescription
 // GET /api/doctors/:doctorId/prescriptions/:prescriptionId
 exports.getPrescriptionById = async (req, res) => {
