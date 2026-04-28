@@ -83,7 +83,7 @@ function summarizePrescription(prescription) {
 }
 
 export default function DoctorAppointments() {
-  const { doctorId, setDoctorId, resolving, resolvedFrom } = useDoctorServiceId();
+  const { doctorId, resolving } = useDoctorServiceId();
 
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
@@ -98,7 +98,13 @@ export default function DoctorAppointments() {
 
   const load = useCallback(async () => {
     if (!isLoggedIn()) return;
-    if (!doctorId) return;
+    if (!doctorId) {
+      if (!resolving) {
+        setAppointments([]);
+        setError("Doctor profile is not linked yet. Open Doctor Profile to create/sync your doctor-service profile.");
+      }
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -135,7 +141,7 @@ export default function DoctorAppointments() {
     } finally {
       setLoading(false);
     }
-  }, [doctorId]);
+  }, [doctorId, resolving]);
 
   useEffect(() => {
     load();
@@ -418,21 +424,7 @@ export default function DoctorAppointments() {
             </div>
           ) : null}
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-5">
-              <label className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-500">Doctor Service ID</label>
-              <input
-                value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
-                placeholder="Paste doctor-service doctor _id"
-                className={inputClass}
-              />
-              <div className="mt-2 text-xs text-slate-500">
-                {resolvedFrom ? `Resolved from: ${resolvedFrom}` : null}
-                {resolving ? " (resolving...)" : null}
-              </div>
-            </div>
-
+          <div className="mt-5 grid gap-4">
             <div className="rounded-2xl border border-slate-200 bg-[#f7fbf5] p-5">
               <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#5c7f31]">Prescription timestamp</div>
               <div className="mt-3 text-sm font-semibold text-slate-900">Automatically saved at creation time</div>
