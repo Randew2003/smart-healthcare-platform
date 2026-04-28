@@ -60,6 +60,11 @@ export default function DoctorPrescriptionHistory() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [patientIdFilter, setPatientIdFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [reportCache, setReportCache] = useState({});
+  const [reportError, setReportError] = useState("");
+  const [reportLoading, setReportLoading] = useState("");
+  const [feedbackDraft, setFeedbackDraft] = useState({});
+  const [savingFeedback, setSavingFeedback] = useState("");
 
   const inputClass =
     "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20";
@@ -86,6 +91,93 @@ export default function DoctorPrescriptionHistory() {
       setLoading(false);
     }
   }, [doctorId]);
+
+  const loadReportsForPrescription = useCallback(
+    async (prescription) => {
+      if (!doctorId) return;
+      if (!prescription?.patientId || !prescription?._id) return;
+
+      const key = String(prescription._id);
+      setReportLoading(key);
+      setReportError("");
+
+      try {
+        const response = await api.get(
+          `/api/patients/doctor-view/${encodeURIComponent(prescription.patientId)}/reports`
+        );
+        const list = Array.isArray(response?.data) ? response.data : [];
+        const filtered = list.filter((report) => {
+          const matchesPrescription = String(report?.prescriptionId || "") === key;
+          const matchesDoctor = String(report?.doctorId || "") === String(doctorId);
+          return matchesPrescription && matchesDoctor;
+        });
+
+        setReportCache((current) => ({ ...current, [key]: filtered }));
+      } catch (err) {
+        setReportError(err?.response?.data?.message || "Failed to load reports.");
+      } finally {
+        setReportLoading("");
+      }
+    },
+    [doctorId]
+  );
+
+  const downloadReportForDoctor = useCallback(async (patientId, report) => {
+    if (!patientId || !report?._id) return;
+    try {
+      const response = await api.get(
+        `/api/patients/doctor-view/${encodeURIComponent(patientId)}/reports/${encodeURIComponent(report._id)}/file`,
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = report?.fileName || `report_${String(report._id).slice(0, 12)}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setReportError("Failed to download report.");
+    }
+  }, []);
+
+  const saveFeedback = useCallback(
+    async (patientId, report) => {
+      if (!doctorId || !patientId || !report?._id) return;
+      const reportId = String(report._id);
+      const feedback = String(feedbackDraft?.[reportId] || "").trim();
+
+      if (!feedback) {
+        setReportError("Feedback cannot be empty.");
+        return;
+      }
+
+      setSavingFeedback(reportId);
+      setReportError("");
+      try {
+        await api.post(
+          `/api/patients/doctor-view/${encodeURIComponent(patientId)}/reports/${encodeURIComponent(reportId)}/feedback`,
+          {
+            doctorId,
+            feedback
+          }
+        );
+
+        setFeedbackDraft((current) => ({ ...current, [reportId]: "" }));
+        // Refresh the cache entry for this report's prescription.
+        if (report?.prescriptionId) {
+          await loadReportsForPrescription({ patientId, _id: report.prescriptionId });
+        }
+      } catch (err) {
+        setReportError(err?.response?.data?.message || "Failed to save feedback.");
+      } finally {
+        setSavingFeedback("");
+      }
+    },
+    [doctorId, feedbackDraft, loadReportsForPrescription]
+  );
 
   useEffect(() => {
     loadPrescriptions();
@@ -203,6 +295,12 @@ export default function DoctorPrescriptionHistory() {
             </div>
           ) : null}
 
+          {reportError ? (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              {reportError}
+            </div>
+          ) : null}
+
           {message ? (
             <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
               {message}
@@ -300,6 +398,91 @@ export default function DoctorPrescriptionHistory() {
                           <div>{medicine?.duration || "-"}</div>
                         </div>
                       ))}
+                    </div>
+                  ) : null}
+
+                  {item?.requiresMedicalReport ? (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-amber-800">
+                            Medical report requested
+                          </div>
+                          <div className="mt-2 text-sm text-amber-900">
+                            {item?.medicalReportRequestNote ||
+                              "The patient was asked to upload medical reports for this prescription."}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => loadReportsForPrescription(item)}
+                          className="rounded-xl border border-amber-200 bg-white px-4 py-2 text-sm font-extrabold text-amber-900 transition hover:bg-amber-100"
+                          disabled={reportLoading === String(item?._id)}
+                        >
+                          {reportLoading === String(item?._id) ? "Loading..." : "View reports"}
+                        </button>
+                      </div>
+
+                      {(reportCache[String(item?._id)] || []).length === 0 && reportCache[String(item?._id)] ? (
+                        <div className="mt-3 text-sm text-amber-900">No reports uploaded yet.</div>
+                      ) : null}
+
+                      {(reportCache[String(item?._id)] || []).length > 0 ? (
+                        <div className="mt-4 grid gap-3">
+                          {(reportCache[String(item?._id)] || []).map((report) => (
+                            <div key={report?._id} className="rounded-xl border border-amber-200 bg-white p-4">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                  <div className="text-sm font-extrabold text-slate-900">{report?.fileName || "Report"}</div>
+                                  <div className="mt-1 text-xs text-slate-500">
+                                    Uploaded: {formatDateTime(report?.uploadedAt)}
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={() => downloadReportForDoctor(item?.patientId, report)}
+                                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-extrabold text-slate-800 transition hover:bg-slate-50"
+                                >
+                                  Download
+                                </button>
+                              </div>
+
+                              {report?.doctorFeedback ? (
+                                <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                  <span className="font-extrabold">Feedback:</span> {report.doctorFeedback}
+                                </div>
+                              ) : null}
+
+                              <div className="mt-4">
+                                <label className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
+                                  Leave feedback
+                                </label>
+                                <textarea
+                                  value={feedbackDraft[String(report?._id)] || ""}
+                                  onChange={(e) =>
+                                    setFeedbackDraft((current) => ({
+                                      ...current,
+                                      [String(report?._id)]: e.target.value
+                                    }))
+                                  }
+                                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#80c342] focus:ring-2 focus:ring-[#80c342]/20"
+                                  placeholder="Write feedback for the patient"
+                                />
+
+                                <div className="mt-3 flex justify-end">
+                                  <button
+                                    onClick={() => saveFeedback(item?.patientId, report)}
+                                    className="rounded-xl border border-[#80c342]/30 bg-[#80c342]/10 px-4 py-2 text-sm font-extrabold text-[#2f6b14] transition hover:bg-[#80c342]/20 disabled:opacity-60"
+                                    disabled={savingFeedback === String(report?._id)}
+                                  >
+                                    {savingFeedback === String(report?._id) ? "Saving..." : "Save feedback"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </article>

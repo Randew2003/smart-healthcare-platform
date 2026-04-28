@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { getUser, isLoggedIn, logout } from "../utils/auth";
+import { api } from "../utils/api";
 import logo from "../assets/logo.png";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [unseenPrescriptionCount, setUnseenPrescriptionCount] = useState(0);
 
   const user = getUser();
   const navigate = useNavigate();
@@ -13,6 +15,17 @@ export default function Header() {
   const role = user?.role || "";
   const isAdmin = authed && role === "admin";
   const isDoctor = authed && role === "doctor";
+  const isPatient = authed && !isAdmin && !isDoctor;
+
+  const patientId = useMemo(() => {
+    if (!isPatient) return "";
+    return user?.id || user?._id || "";
+  }, [isPatient, user?.id, user?._id]);
+
+  const prescriptionsSeenKey = useMemo(() => {
+    if (!patientId) return "";
+    return `patient:lastSeenPrescriptionAt:${patientId}`;
+  }, [patientId]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -21,9 +34,67 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!isPatient || !patientId || !prescriptionsSeenKey) return;
+
+    let cancelled = false;
+
+    const getLastSeen = () => {
+      const raw = localStorage.getItem(prescriptionsSeenKey);
+      const ts = raw ? Date.parse(raw) : NaN;
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    const computeUnseen = async () => {
+      try {
+        const lastSeen = getLastSeen();
+        const { data } = await api.get(
+          `/api/prescriptions/patient/${encodeURIComponent(patientId)}`
+        );
+
+        const list = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+            ? data
+            : [];
+
+        const unseen = list.filter((item) => {
+          const createdAtRaw = item?.createdAt;
+          const createdAt = createdAtRaw ? Date.parse(createdAtRaw) : NaN;
+          return Number.isFinite(createdAt) ? createdAt > lastSeen : false;
+        }).length;
+
+        if (!cancelled) setUnseenPrescriptionCount(unseen);
+      } catch {
+        if (!cancelled) setUnseenPrescriptionCount(0);
+      }
+    };
+
+    computeUnseen();
+
+    const onSeen = () => {
+      computeUnseen();
+    };
+    window.addEventListener("prescriptions:seen", onSeen);
+
+    const interval = window.setInterval(computeUnseen, 30000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("prescriptions:seen", onSeen);
+      window.clearInterval(interval);
+    };
+  }, [isPatient, patientId, prescriptionsSeenKey]);
+
   const handleLogout = () => {
     logout();
     navigate(isAdmin ? "/admin/login" : "/");
+  };
+
+  const handlePrescriptionBellClick = () => {
+    if (!prescriptionsSeenKey) return;
+    localStorage.setItem(prescriptionsSeenKey, new Date().toISOString());
+    setUnseenPrescriptionCount(0);
   };
 
   // 🔥 NAV STYLE WITH UNDERLINE
@@ -122,6 +193,7 @@ export default function Header() {
             <>
               <NavLink to="/doctors" className={navClass}>Doctors</NavLink>
               <NavLink to="/appointments" className={navClass}>Appointments</NavLink>
+              <NavLink to="/prescriptions" className={navClass}>Prescriptions</NavLink>
               <NavLink to="/payments" className={navClass}>Payments</NavLink>
               <NavLink to="/services" className={navClass}>Services</NavLink>
               <NavLink to="/contact" className={navClass}>Contact</NavLink>
@@ -132,12 +204,49 @@ export default function Header() {
         {/* 🔹 BUTTONS (slightly rounded) */}
         <div className="flex items-center gap-2">
           {authed ? (
-            <button
-              onClick={handleLogout}
-              className="h-8 rounded-md border border-slate-300 px-3 text-[12px] font-medium text-slate-700 transition hover:bg-[#2459A6] hover:text-white"
-            >
-              Logout
-            </button>
+            <>
+              {isPatient && (
+                <Link
+                  to="/prescriptions"
+                  onClick={handlePrescriptionBellClick}
+                  className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 text-slate-700 transition hover:bg-[#2459A6] hover:text-white"
+                  aria-label="Prescription notifications"
+                  title="Prescription notifications"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14 21a2 2 0 0 1-4 0"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 7H3s3 0 3-7"
+                    />
+                  </svg>
+
+                  {unseenPrescriptionCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#45B84A] px-1 text-[10px] font-bold leading-none text-white">
+                      {unseenPrescriptionCount > 9 ? "9+" : unseenPrescriptionCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="h-8 rounded-md border border-slate-300 px-3 text-[12px] font-medium text-slate-700 transition hover:bg-[#2459A6] hover:text-white"
+              >
+                Logout
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -190,6 +299,7 @@ export default function Header() {
               <NavLink to="/" className={navClass}>Home</NavLink>
               <NavLink to="/doctors" className={navClass}>Doctors</NavLink>
               <NavLink to="/appointments" className={navClass}>Appointments</NavLink>
+              <NavLink to="/prescriptions" className={navClass}>Prescriptions</NavLink>
               <NavLink to="/payments" className={navClass}>Payments</NavLink>
               <NavLink to="/services" className={navClass}>Services</NavLink>
               <NavLink to="/contact" className={navClass}>Contact</NavLink>
