@@ -23,6 +23,38 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Time slot already booked' });
     }
 
+    // 🔥 CHECK DOCTOR AVAILABILITY
+    let selectedSlot = null;
+
+    try {
+      const availabilityRes = await axios.get(
+      `http://doctor-service:4005/api/doctors/${doctorId}/availability`
+    );
+
+    const doctor = availabilityRes.data.data;
+
+     selectedSlot = doctor.availability.find(
+       (slot) =>
+         slot.date === date &&
+         time >= slot.startTime &&
+         time < slot.endTime &&
+         slot.isBooked === false
+      );
+
+    if (!selectedSlot) {
+      return res.status(400).json({
+         message: "Doctor is not available at this selected time"
+      });
+    }
+
+    } catch (err) {
+     console.error("Availability fetch failed:", err.message);
+
+    return res.status(500).json({
+       message: "Failed to check doctor availability"
+    });
+   }
+
     // Create appointment
     const appointment = new Appointment({
       patientId,
@@ -34,6 +66,19 @@ export const createAppointment = async (req, res) => {
 
     // Generate meeting link (for video consultation)
     appointment.meetingLink = `https://meet.jit.si/appointment-${appointment._id}`;
+
+
+    // 🔥 MARK SLOT AS BOOKED
+    try {
+       await axios.put(
+          `http://doctor-service:4005/api/doctors/${doctorId}/availability/${selectedSlot._id}`,
+        {
+          isBooked: true
+        }
+      );
+    } catch (err) {
+       console.error("Failed to update slot booking:", err.message);
+    }
 
     await appointment.save();
 

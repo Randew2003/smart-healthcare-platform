@@ -13,6 +13,9 @@ export default function BookAppointment() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [availability, setAvailability] = useState([]);
+  const [availableTimes, setAvailableTimes] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]);
 
   const [form, setForm] = useState({
     patientId: user?.id || user?._id || "PATIENT123",
@@ -48,8 +51,68 @@ export default function BookAppointment() {
     fetchDoctors();
   }, []);
 
+  useEffect(() => {
+
+    console.log("Doctor ID changed:", form.doctorId);
+    if (!form.doctorId) {
+      setAvailability([]);
+      setAvailableDates([]);
+      setAvailableTimes([]);
+      setForm(prev => ({ ...prev, date: "", time: "" }));
+      return;
+    }
+
+  const fetchAvailability = async () => {
+    try {
+      const res = await api.get(`/api/doctors/${form.doctorId}/availability`);
+      const doctor = res.data.data;
+      console.log("API CALLED ✅");
+
+      console.log("Doctor availability:", doctor.availability);
+
+      const avail = doctor.availability || [];
+      setAvailability(avail);
+
+      // Extract unique available dates
+      const dates = [...new Set(avail.filter(slot => !slot.isBooked).map(slot => slot.date))].sort();
+      setAvailableDates(dates);
+    } catch (err) {
+      console.log("Availability fetch error:", err.message);
+      setAvailability([]);
+      setAvailableDates([]);
+    }
+  };
+
+    fetchAvailability();
+  }, [form.doctorId]);
+
+
+  useEffect(() => {
+  if (!form.date) {
+    setAvailableTimes([]);
+    return;
+  }
+
+  const slots = availability.filter(
+    (slot) =>
+      slot.date === form.date && slot.isBooked === false
+  );
+
+  // convert slots → time list
+  const times = slots.map((slot) => slot.startTime);
+
+  setAvailableTimes(times);
+ }, [form.date, availability]);
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm(prev => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'date') {
+        updated.time = "";
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = async () => {
@@ -123,27 +186,39 @@ export default function BookAppointment() {
           <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
             <h3 className="mb-3 text-base text-slate-900">Select Date</h3>
 
-            <input
-              type="date"
+            <select
               name="date"
               value={form.date}
               onChange={handleChange}
               className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            />
+            >
+              <option value="">-- Select Date --</option>
+              {availableDates.map((date) => (
+                <option key={date} value={date}>
+                  {new Date(date).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* TIME */}
           <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
             <h3 className="mb-3 text-base text-slate-900">Select Time</h3>
 
-            <input
-              type="time"
-              name="time"
-              value={form.time}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            />
-          </div>
+            <select
+             name="time"
+             value={form.time}
+             onChange={handleChange}
+             className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
+            >
+          <option value="">-- Select Time --</option>
+           {availableTimes.map((t, index) => (
+           <option key={index} value={t}>
+           {t}
+          </option>
+         ))}
+         </select>
+        </div>
 
           {/* EMAIL */}
           <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
