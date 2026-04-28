@@ -1006,7 +1006,7 @@ exports.getDoctorDashboard = async (req, res) => {
     }
 
     // Get prescriptions count from doctor-service database
-    const Prescription = require("../models/Prescription");
+    const Prescription = require("../models/prescription");
     const totalPrescriptions = await Prescription.countDocuments({ doctorId });
 
     // Get appointments from appointment-service
