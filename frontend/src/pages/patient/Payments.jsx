@@ -84,7 +84,7 @@ export default function Payments() {
             </div>
           )}
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
             <div className="rounded-2xl border border-[#D8EAF6] bg-white p-6 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#35B85A]">
                 Total Records
@@ -108,18 +108,6 @@ export default function Payments() {
                 Including pending records
               </p>
             </div>
-
-            <div className="rounded-2xl border border-[#D8EAF6] bg-white p-6 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#35B85A]">
-                Sandbox Note
-              </p>
-              <h2 className="mt-3 text-3xl font-bold text-[#2459A6]">
-                Pending
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Localhost notify URL may not update status
-              </p>
-            </div>
           </div>
 
           <div className="mt-10 rounded-2xl border border-[#D8EAF6] bg-white p-6 shadow-sm lg:p-8">
@@ -128,9 +116,6 @@ export default function Payments() {
                 <h2 className="text-xl font-bold text-[#2459A6]">
                   Transaction History
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Pending payments are also shown for sandbox testing.
-                </p>
               </div>
 
               <button
@@ -223,13 +208,6 @@ export default function Payments() {
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="mt-6 rounded-xl border border-yellow-200 bg-yellow-50 px-5 py-4 text-sm text-yellow-800">
-            PayHere sandbox may keep payments as pending if your backend
-            <strong> notify_url </strong>
-            is localhost. Use a public URL like ngrok for backend callback
-            testing, then update status from PayHere status_code.
           </div>
         </div>
       </section>

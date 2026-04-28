@@ -18,12 +18,15 @@ export default function Doctors() {
         const res = await fetch("/api/doctors");
         const data = await res.json();
 
-        let doctorList = [];
-        if (Array.isArray(data)) doctorList = data;
-        else if (Array.isArray(data?.data)) doctorList = data.data;
-        else if (Array.isArray(data?.doctors)) doctorList = data.doctors;
+        const doctorList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.doctors)
+          ? data.doctors
+          : [];
 
-        setDoctors(Array.isArray(doctorList) ? doctorList : []);
+        setDoctors(doctorList);
       } catch (err) {
         console.error("Error fetching doctors:", err);
         setError("Failed to load doctors.");
@@ -49,11 +52,7 @@ export default function Doctors() {
         doctor?.clinicName || doctor?.hospital || ""
       ).toLowerCase();
 
-      return (
-        name.includes(q) ||
-        specialization.includes(q) ||
-        clinic.includes(q)
-      );
+      return name.includes(q) || specialization.includes(q) || clinic.includes(q);
     });
   }, [doctors, query]);
 
@@ -64,75 +63,60 @@ export default function Doctors() {
           <img
             src={doctorsBanner}
             alt="Doctors Banner"
-            className="h-[260px] w-full object-cover sm:h-[320px] lg:h-[380px]"
+            className="h-[220px] w-full object-cover sm:h-[280px] lg:h-[330px]"
           />
         </div>
 
-        <div className="mx-auto w-full max-w-7xl px-6 py-14 lg:px-8 lg:py-16">
-          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#35B85A]">
-                Our Doctors
-              </p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#2459A6] sm:text-4xl">
-                Choose A Specialist For Your Healthcare Needs
-              </h2>
-            </div>
-
-            <p className="text-sm leading-7 text-slate-600 sm:text-base">
-              Search trusted medical professionals by name, specialty, clinic,
-              or hospital and book your appointment easily.
-            </p>
-          </div>
-
-          <div className="mt-10 rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm">
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+          <div className="rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-[#2459A6]">
-                  Search doctors
-                </label>
+                <p className="text-xs font-bold uppercase tracking-wide text-[#35B85A]">
+                  Our Doctors
+                </p>
+                <h1 className="mt-1 text-2xl font-bold text-[#2459A6]">
+                  Find Your Doctor
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                  Search and book an appointment with a specialist.
+                </p>
+              </div>
+
+              <div className="w-full lg:max-w-md">
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search doctor, specialization, clinic..."
-                  className="h-11 w-full rounded-md border border-slate-200 bg-[#F6FAFD] px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#2477B8] focus:bg-white focus:ring-2 focus:ring-[#2477B8]/15"
+                  placeholder="Search doctor or specialty..."
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-[#F6FAFD] px-4 text-sm outline-none focus:border-[#2477B8] focus:bg-white"
                 />
-              </div>
-
-              <div className="rounded-xl border border-[#D8EAF6] bg-[#EAF6FF] px-5 py-3 text-sm">
-                <p className="font-semibold text-[#2459A6]">
-                  {filtered.length} Doctors Found
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  Search result count
+                <p className="mt-2 text-xs text-slate-500">
+                  {filtered.length} doctor{filtered.length === 1 ? "" : "s"} found
                 </p>
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="mt-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
               {error}
             </div>
           )}
 
           {loading ? (
-            <div className="mt-10 rounded-2xl border border-[#D8EAF6] bg-white px-6 py-14 text-center shadow-sm">
-              <p className="text-sm font-medium text-slate-500">
-                Loading doctors...
-              </p>
+            <div className="mt-6 rounded-2xl border border-[#D8EAF6] bg-white p-10 text-center text-sm text-slate-500">
+              Loading doctors...
             </div>
           ) : filtered.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-[#D8EAF6] bg-white px-6 py-14 text-center shadow-sm">
-              <h3 className="text-lg font-semibold text-[#2459A6]">
+            <div className="mt-6 rounded-2xl border border-[#D8EAF6] bg-white p-10 text-center">
+              <h3 className="text-lg font-bold text-[#2459A6]">
                 No doctors found
               </h3>
-              <p className="mt-2 text-sm text-slate-500">
-                Try another doctor name, specialty, clinic, or hospital.
+              <p className="mt-1 text-sm text-slate-500">
+                Try another doctor name or specialty.
               </p>
             </div>
           ) : (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((doctor) => {
                 const id = doctor?._id || doctor?.id || "";
                 const name = doctor?.name || doctor?.fullName || "Doctor";
@@ -143,9 +127,7 @@ export default function Doctors() {
                 const clinic =
                   doctor?.clinicName ||
                   doctor?.hospital ||
-                  "Clinic information not available";
-                const email = doctor?.email || "Email not available";
-                const phone = doctor?.phone || "Phone not available";
+                  "Clinic not available";
                 const experience =
                   doctor?.experience ||
                   doctor?.yearsOfExperience ||
@@ -157,94 +139,64 @@ export default function Doctors() {
                   null;
 
                 return (
-                  <div
+                  <article
                     key={id || doctor?.email || name}
-                    className="overflow-hidden rounded-2xl border border-[#D8EAF6] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    className="rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
-                    <div className="bg-gradient-to-r from-[#2459A6] to-[#2477B8] px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-white text-2xl font-bold text-[#2477B8]">
-                          {name.charAt(0).toUpperCase()}
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="relative mt-1 flex h-4 w-4 shrink-0">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#35B85A] opacity-60" />
+                        <span className="relative inline-flex h-4 w-4 rounded-full bg-[#35B85A] shadow-[0_0_14px_rgba(53,184,90,0.9)]" />
+                      </div>
 
-                        <div className="min-w-0">
-                          <h3 className="truncate text-lg font-bold text-white">
-                            {name}
-                          </h3>
-                          <p className="mt-1 text-sm font-medium text-white/85">
-                            {specialization}
-                          </p>
-                        </div>
+                      <div className="min-w-0">
+                        <h2 className="truncate text-lg font-bold text-slate-900">
+                          Dr. {name.replace(/^Dr\.?\s*/i, "")}
+                        </h2>
+                        <p className="mt-1 text-sm font-semibold text-[#35B85A]">
+                          {specialization}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="p-6">
-                      <div className="mb-4 flex flex-wrap gap-2">
-                        <span className="rounded-md bg-[#35B85A]/10 px-3 py-1 text-xs font-semibold text-[#23823d]">
-                          Available
-                        </span>
-                        <span className="rounded-md bg-[#EAF6FF] px-3 py-1 text-xs font-semibold text-[#2477B8]">
-                          Appointment
-                        </span>
+                    <div className="mt-5 space-y-3 text-sm">
+                      <div>
+                        <p className="text-xs font-semibold uppercase text-slate-400">
+                          Clinic / Hospital
+                        </p>
+                        <p className="mt-1 font-medium text-slate-700">
+                          {clinic}
+                        </p>
                       </div>
 
-                      <p className="text-sm font-medium text-slate-500">
-                        Clinic / Hospital
-                      </p>
-                      <p className="mt-1 min-h-[24px] text-sm font-semibold text-slate-700">
-                        {clinic}
-                      </p>
-
-                      <p className="mt-4 line-clamp-3 min-h-[72px] text-sm leading-6 text-slate-600">
-                        {doctor?.bio ||
-                          "Consult this doctor for professional healthcare advice and appointment-based medical support."}
-                      </p>
-
-                      <div className="mt-5 grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-[#F6FAFD] p-3">
-                          <p className="text-[11px] font-semibold uppercase text-slate-400">
+                          <p className="text-xs font-semibold text-slate-400">
                             Experience
                           </p>
-                          <p className="mt-1 text-sm font-semibold text-[#2459A6]">
+                          <p className="mt-1 font-bold text-[#2459A6]">
                             {experience}
                           </p>
                         </div>
 
                         <div className="rounded-xl bg-[#F6FAFD] p-3">
-                          <p className="text-[11px] font-semibold uppercase text-slate-400">
+                          <p className="text-xs font-semibold text-slate-400">
                             Fee
                           </p>
-                          <p className="mt-1 text-sm font-semibold text-[#2459A6]">
+                          <p className="mt-1 font-bold text-[#2459A6]">
                             {fee ? `LKR ${fee}` : "At booking"}
                           </p>
                         </div>
                       </div>
-
-                      <div className="mt-5 space-y-2 border-t border-[#D8EAF6] pt-4">
-                        <p className="truncate text-sm text-slate-600">
-                          <span className="font-semibold text-slate-700">
-                            Email:
-                          </span>{" "}
-                          {email}
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          <span className="font-semibold text-slate-700">
-                            Phone:
-                          </span>{" "}
-                          {phone}
-                        </p>
-                      </div>
-
-                      <Link
-                        to={`/book-appointment?doctorId=${encodeURIComponent(
-                          id
-                        )}`}
-                        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-[#2477B8] text-sm font-semibold text-white transition hover:bg-[#2459A6]"
-                      >
-                        Book Appointment
-                      </Link>
                     </div>
-                  </div>
+
+                    <Link
+                      to={`/book-appointment?doctorId=${encodeURIComponent(id)}`}
+                      className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#2459A6] text-sm font-semibold text-white transition hover:bg-[#1d4a8a]"
+                    >
+                      Book Appointment
+                    </Link>
+                  </article>
                 );
               })}
             </div>
