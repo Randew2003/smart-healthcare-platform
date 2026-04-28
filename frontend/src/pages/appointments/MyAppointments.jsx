@@ -52,84 +52,115 @@ export default function MyAppointments() {
 
   return (
     <MainLayout>
-      <div className="px-4 pb-16 max-w-[1200px] mx-auto">
-        <div className="bg-[linear-gradient(135deg,rgba(128,195,66,0.16),rgba(251,176,51,0.14))] border border-[rgba(128,195,66,0.15)] rounded-[18px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-          <h2 className="m-0 text-2xl text-slate-900">{user?.role === "doctor" ? "My Schedule" : "My Appointments"}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            {user?.role === "doctor"
-              ? "Review your upcoming consultations and manage your schedule."
-              : "View and manage your scheduled appointments."}
-          </p>
-        </div>
-
-        {!isLoggedIn() ? (
-          <div className="mt-4 text-slate-600 text-sm">Please login to view your appointments.</div>
-        ) : null}
-
-        {error ? <div className="mt-4 rounded-xl bg-red-100 border border-red-200 px-3 py-2 text-sm text-red-700">{error}</div> : null}
-
-        <div className="mt-4 grid gap-4">
-          <div className="bg-white rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)] p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-3">
-              <h3 className="m-0 text-base font-semibold text-slate-900">
-                {user?.role === "doctor" ? "Upcoming Consultations" : "My Appointments"}
-              </h3>
-              {user?.role !== "doctor" ? (
-                <Link
-                  to="/book-appointment"
-                  className="inline-block rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
-                >
-                  Book New Appointment
-                </Link>
-              ) : null}
+      <section className="min-h-screen bg-[#F6FAFD] px-6 py-8 text-slate-800 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-5xl">
+            <div className="rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#35B85A]">
+                    {user?.role === "doctor" ? "Schedule" : "Appointments"}
+                  </p>
+                  <h1 className="mt-1 text-2xl font-bold text-[#2459A6]">
+                    {user?.role === "doctor" ? "My Schedule" : "My Appointments"}
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {user?.role === "doctor"
+                      ? "Review your upcoming consultations and manage your schedule."
+                      : "View and manage your scheduled appointments."}
+                  </p>
+                </div>
+                {user?.role !== "doctor" ? (
+                  <Link
+                    to="/book-appointment"
+                    className="rounded-lg bg-[#2459A6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1d4a8a] no-underline whitespace-nowrap"
+                  >
+                    Book New Appointment
+                  </Link>
+                ) : null}
+              </div>
             </div>
 
-            {loading ? <div className="text-slate-600 text-sm">Loading...</div> : null}
+            {!isLoggedIn() && (
+              <div className="mt-5 rounded-xl border border-[#D8EAF6] bg-white p-4 text-sm text-slate-600">
+                Please login to view your appointments.
+              </div>
+            )}
 
-            <div className="mt-3 grid gap-2">
-              {appointments.map((appt) => (
-                <div key={appt._id} className="rounded-[14px] border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs font-black text-slate-900">
-                    <span>{appt.status || "Scheduled"}</span>
-                    <span className="font-mono text-[11px] text-slate-500">{appt._id}</span>
-                  </div>
-                  <div className="mt-2 text-slate-600 text-xs leading-6"><b>Doctor:</b> Dr. {appt.doctor?.name || "N/A"} ({appt.doctor?.specialization || ""})</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Date:</b> {appt.date ? new Date(appt.date).toLocaleDateString() : "N/A"}</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time ? new Date(`2000-01-01T${appt.time}`).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "N/A"}</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.notes || "N/A"}</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
+            {error && (
+              <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                {error}
+              </div>
+            )}
 
-                  {user?.role !== "doctor" && appt?.status === "Confirmed" && appt?.meetingLink ? (
-                    <div className="mt-4">
-                      <a
-                        href={appt.meetingLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center justify-center rounded-[12px] bg-gradient-to-r from-[#80c342] to-[#fbb033] px-4 py-3 text-sm font-black text-white no-underline"
-                      >
-                        Join Meeting
-                      </a>
-                    </div>
-                  ) : null}
+            <div className="mt-5">
+              {loading ? (
+                <div className="rounded-xl border border-[#D8EAF6] bg-white p-8 text-center text-sm text-slate-500">
+                  Loading appointments...
                 </div>
-              ))}
-
-              {!loading && appointments.length === 0 ? (
-                <div className="text-center p-10">
-                  <h4 className="m-0 text-lg font-semibold text-slate-900 mb-2">
+              ) : appointments.length === 0 ? (
+                <div className="rounded-xl border border-[#D8EAF6] bg-white p-8 text-center">
+                  <h2 className="text-lg font-bold text-[#2459A6]">
                     {user?.role === "doctor" ? "No appointments scheduled." : "No Appointments Yet"}
-                  </h4>
-                  <p className="m-0 text-sm leading-6 text-slate-600">
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
                     {user?.role === "doctor"
                       ? "You do not have any scheduled consultations yet. Check back later or ask patients to book online."
                       : "You haven't booked any appointments. Start by scheduling your first visit with a doctor."}
                   </p>
                 </div>
-              ) : null}
+              ) : (
+                <div className="space-y-3">
+                {appointments.map((appt) => (
+                  <article key={appt._id} className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#35B85A]">
+                          {appt.status || "Scheduled"}
+                        </p>
+                        <h2 className="mt-1 text-lg font-bold text-[#2459A6]">
+                          Dr. {appt.doctor?.name || "N/A"}
+                        </h2>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {appt.doctor?.specialization || ""} • {appt.date ? new Date(appt.date).toLocaleDateString() : "N/A"}
+                        </p>
+                      </div>
+                      {user?.role !== "doctor" && appt?.status === "Confirmed" && appt?.meetingLink ? (
+                        <a
+                          href={appt.meetingLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg bg-[#2459A6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1d4a8a]"
+                        >
+                          Join Meeting
+                        </a>
+                      ) : null}
+                    </div>
+                    <div className="mt-4">
+                      <p className="text-sm font-bold text-slate-800">Appointment Details</p>
+                      <div className="mt-2 space-y-2">
+                        <div className="rounded-lg bg-[#F6FAFD] px-3 py-2">
+                          <p className="text-xs text-slate-500">Time</p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900">
+                            {appt.time ? new Date(`2000-01-01T${appt.time}`).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "N/A"}
+                          </p>
+                        </div>
+                        {appt.notes && (
+                          <div className="rounded-lg bg-[#F6FAFD] px-3 py-2">
+                            <p className="text-xs text-slate-500">Reason for Visit</p>
+                            <p className="mt-1 text-sm font-semibold text-slate-900">{appt.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </MainLayout>
   );
 }
