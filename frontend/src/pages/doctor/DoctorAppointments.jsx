@@ -78,6 +78,11 @@ function getAppointmentSortTime(appointment) {
   return 0;
 }
 
+function getCreatedAtSortTime(appointment) {
+  const parsed = new Date(appointment?.createdAt || appointment?.updatedAt || 0);
+  return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+}
+
 function summarizePrescription(prescription) {
   const medicines = Array.isArray(prescription?.medicines) ? prescription.medicines : [];
   if (medicines.length === 0) return "No medicines listed";
@@ -370,7 +375,7 @@ export default function DoctorAppointments() {
 
   const appointmentCards = useMemo(() => {
     return [...appointments]
-      .sort((a, b) => getAppointmentSortTime(a) - getAppointmentSortTime(b))
+      .sort((a, b) => getCreatedAtSortTime(b) - getCreatedAtSortTime(a))
       .map((appointment) => {
         const patient = appointment?.patientProfile;
 
