@@ -154,131 +154,145 @@ export default function BookAppointment() {
 
   return (
     <MainLayout>
-      <div className="px-4 pb-16 max-w-[1200px] mx-auto">
-        <div className="bg-[linear-gradient(135deg,rgba(128,195,66,0.16),rgba(251,176,51,0.14))] border border-[rgba(128,195,66,0.15)] rounded-[18px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-          <h2 className="m-0 text-2xl text-slate-900">Book Your Appointment</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">Select a doctor, choose a date and time, and confirm your visit.</p>
+      <section className="min-h-screen bg-[#F6FAFD] px-6 py-8 text-slate-800 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-5xl">
+            <div className="rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-[#35B85A]">
+                  Appointment
+                </p>
+                <h1 className="mt-1 text-2xl font-bold text-[#2459A6]">
+                  Book Your Appointment
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                  Select a doctor, choose a date and time, and confirm your visit.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-5">
+              {/* Doctor Selection */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Select Doctor</p>
+                <select
+                  name="doctorId"
+                  value={form.doctorId}
+                  onChange={handleChange}
+                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 outline-none"
+                >
+                  <option value="">-- Choose Doctor --</option>
+                  {doctors.map((doc) => (
+                    <option key={doc._id} value={doc._id}>
+                      Dr. {doc.name} ({doc.specialization})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date Selection */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Select Date</p>
+                <select
+                  name="date"
+                  value={form.date}
+                  onChange={handleChange}
+                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 outline-none"
+                >
+                  <option value="">-- Select Date --</option>
+                  {availableDates.map((date) => (
+                    <option key={date} value={date}>
+                      {new Date(date).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Time Selection */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Select Time</p>
+                <select
+                  name="time"
+                  value={form.time}
+                  onChange={handleChange}
+                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 outline-none"
+                >
+                  <option value="">-- Select Time --</option>
+                  {availableTimes.map((t, index) => (
+                    <option key={index} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Email */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Your Email</p>
+                <input
+                  type="email"
+                  name="patientEmail"
+                  value={form.patientEmail}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none"
+                />
+              </div>
+
+              {/* Phone */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Your Phone</p>
+                <input
+                  type="tel"
+                  name="patientPhone"
+                  value={form.patientPhone}
+                  onChange={handleChange}
+                  placeholder="Enter your phone number"
+                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none"
+                />
+              </div>
+
+              {/* Reason */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Reason for Visit</p>
+                <textarea
+                  name="notes"
+                  value={form.notes}
+                  onChange={handleChange}
+                  placeholder="Describe your symptoms or reason..."
+                  className="mt-2 w-full min-h-[100px] rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none"
+                />
+              </div>
+
+              {/* Consultation Fee */}
+              <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
+                <p className="text-sm font-bold text-slate-800">Consultation Fee</p>
+                <p className="mt-2 text-lg font-bold text-[#2459A6]">
+                  LKR {appointmentFee}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  After booking, you will be redirected to PayHere to complete the payment.
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <div className="text-center">
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className={`${
+                    submitting
+                      ? "cursor-not-allowed opacity-70"
+                      : "cursor-pointer"
+                  } inline-flex w-full sm:w-auto items-center justify-center rounded-lg bg-[#2459A6] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1d4a8a]"`}
+                >
+                  {submitting ? "Processing payment..." : "Book & Pay Now"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* GRID */}
-        <div className="mt-4 grid gap-5 sm:grid-cols-2">
-          
-          {/* DOCTOR SELECT */}
-          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Select Doctor</h3>
-
-            <select
-              name="doctorId"
-              value={form.doctorId}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            >
-              <option value="">-- Choose Doctor --</option>
-              {doctors.map((doc) => (
-                <option key={doc._id} value={doc._id}>
-                  Dr. {doc.name} ({doc.specialization})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* DATE */}
-          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Select Date</h3>
-
-            <select
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            >
-              <option value="">-- Select Date --</option>
-              {availableDates.map((date) => (
-                <option key={date} value={date}>
-                  {new Date(date).toLocaleDateString()}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* TIME */}
-          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Select Time</h3>
-
-            <select
-             name="time"
-             value={form.time}
-             onChange={handleChange}
-             className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            >
-          <option value="">-- Select Time --</option>
-           {availableTimes.map((t, index) => (
-           <option key={index} value={t}>
-           {t}
-          </option>
-         ))}
-         </select>
-        </div>
-
-          {/* EMAIL */}
-          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Your Email</h3>
-
-            <input
-              type="email"
-              name="patientEmail"
-              value={form.patientEmail}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            />
-          </div>
-
-          {/* PHONE */}
-          <div className="bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Your Phone</h3>
-
-            <input
-              type="tel"
-              name="patientPhone"
-              value={form.patientPhone}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              className="w-full px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            />
-          </div>
-
-          {/* REASON */}
-          <div className="sm:col-span-2 bg-white p-5 rounded-[18px] border border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.05)]">
-            <h3 className="mb-3 text-base text-slate-900">Reason for Visit</h3>
-
-            <textarea
-              name="notes"
-              value={form.notes}
-              onChange={handleChange}
-              placeholder="Describe your symptoms or reason..."
-              className="w-full min-h-[120px] px-4 py-3 rounded-[12px] border border-slate-200 bg-white text-sm outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-4">
-          <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-            Consultation fee: <span className="font-semibold text-slate-900">LKR {appointmentFee}</span>
-            <div className="mt-2">After booking, you will be redirected to PayHere to complete the payment.</div>
-          </div>
-
-          <div className="text-center">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className={`${submitting ? "opacity-70 cursor-not-allowed" : "cursor-pointer"} inline-flex w-full sm:w-auto items-center justify-center rounded-[12px] px-4 py-3 text-sm font-black text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] bg-gradient-to-r from-[#80c342] to-[#fbb033]`}
-            >
-              {submitting ? "Processing payment..." : "Book & Pay Now"}
-            </button>
-          </div>
-        </div>
-      </div>
+      </section>
     </MainLayout>
   );
 }
