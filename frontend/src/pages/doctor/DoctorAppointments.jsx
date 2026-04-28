@@ -90,6 +90,7 @@ function summarizePrescription(prescription) {
 }
 
 export default function DoctorAppointments() {
+  const doctorUser = getUser();
   const { doctorId, resolving } = useDoctorServiceId();
 
   const [loading, setLoading] = useState(false);
