@@ -1,18 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { getUser, isLoggedIn, logout } from "../utils/auth";
 import { api } from "../utils/api";
+import { useDoctorServiceId } from "../pages/doctor/doctorUtils";
 import logo from "../assets/logo.png";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [unseenPrescriptionCount, setUnseenPrescriptionCount] = useState(0);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const accountMenuRef = useRef(null);
 
   const user = getUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const authed = isLoggedIn();
+  const { doctorId } = useDoctorServiceId();
 
   const role = user?.role || "";
   const isAdmin = authed && role === "admin";
@@ -52,6 +53,11 @@ export default function Header() {
     if (!patientId) return "";
     return `patient:lastSeenPrescriptionAt:${patientId}`;
   }, [patientId]);
+
+  const reportsSeenKey = useMemo(() => {
+    if (!doctorId) return "";
+    return `doctor:lastSeenReportAt:${doctorId}`;
+  }, [doctorId]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -136,6 +142,61 @@ export default function Header() {
     };
   }, [isPatient, patientId, prescriptionsSeenKey]);
 
+  useEffect(() => {
+    if (!isDoctor || !doctorId || !reportsSeenKey) return;
+
+    let cancelled = false;
+
+    const getLastSeen = () => {
+      const raw = localStorage.getItem(reportsSeenKey);
+      const ts = raw ? Date.parse(raw) : NaN;
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    const computeUnseen = async () => {
+      try {
+        const lastSeen = getLastSeen();
+        const { data } = await api.get(
+          `/api/patients/doctor-view/reports?doctorId=${encodeURIComponent(doctorId)}`
+        );
+
+        const list = Array.isArray(data) ? data : [];
+        const unseen = list.filter((item) => {
+          const uploadedAtRaw = item?.uploadedAt;
+          const uploadedAt = uploadedAtRaw ? Date.parse(uploadedAtRaw) : NaN;
+          return Number.isFinite(uploadedAt) ? uploadedAt > lastSeen : false;
+        }).length;
+
+        if (!cancelled) setUnseenReportCount(unseen);
+      } catch {
+        if (!cancelled) setUnseenReportCount(0);
+      }
+    };
+
+    computeUnseen();
+
+    const onSeen = () => {
+      computeUnseen();
+    };
+
+    window.addEventListener("doctorReports:seen", onSeen);
+    const interval = window.setInterval(computeUnseen, 30000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("doctorReports:seen", onSeen);
+      window.clearInterval(interval);
+    };
+  }, [doctorId, isDoctor, reportsSeenKey]);
+
+  useEffect(() => {
+    if (!isDoctor || !doctorId || !reportsSeenKey) return;
+    if (location.pathname !== "/doctor/reports") return;
+
+    localStorage.setItem(reportsSeenKey, new Date().toISOString());
+    window.dispatchEvent(new Event("doctorReports:seen"));
+  }, [doctorId, isDoctor, location.pathname, reportsSeenKey]);
+
   const handleLogout = () => {
     logout();
     setAccountMenuOpen(false);
@@ -150,6 +211,13 @@ export default function Header() {
     if (!prescriptionsSeenKey) return;
     localStorage.setItem(prescriptionsSeenKey, new Date().toISOString());
     setUnseenPrescriptionCount(0);
+  };
+
+  const handleDoctorReportBellClick = () => {
+    if (!reportsSeenKey) return;
+    localStorage.setItem(reportsSeenKey, new Date().toISOString());
+    setUnseenReportCount(0);
+    window.dispatchEvent(new Event("doctorReports:seen"));
   };
 
   // 🔥 NAV STYLE WITH UNDERLINE
@@ -240,6 +308,7 @@ export default function Header() {
               <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
               {/* <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink> */}
               <NavLink to="/doctor/prescriptions" className={navClass}>Prescription History</NavLink>
+              <NavLink to="/doctor/reports" className={navClass}>Reports</NavLink>
               {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
               <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
               <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>
@@ -290,6 +359,41 @@ export default function Header() {
                   {unseenPrescriptionCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#45B84A] px-1 text-[10px] font-bold leading-none text-white">
                       {unseenPrescriptionCount > 9 ? "9+" : unseenPrescriptionCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              {isDoctor && (
+                <Link
+                  to="/doctor/reports"
+                  onClick={handleDoctorReportBellClick}
+                  className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 text-slate-700 transition hover:bg-[#2459A6] hover:text-white"
+                  aria-label="Report notifications"
+                  title="Report notifications"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14 21a2 2 0 0 1-4 0"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 7H3s3 0 3-7"
+                    />
+                  </svg>
+
+                  {unseenReportCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f97316] px-1 text-[10px] font-bold leading-none text-white">
+                      {unseenReportCount > 9 ? "9+" : unseenReportCount}
                     </span>
                   )}
                 </Link>
@@ -434,6 +538,7 @@ export default function Header() {
               <NavLink to="/doctor/appointments" className={navClass}>Appointments</NavLink>
               <NavLink to="/doctor/patients" className={navClass}>Patients</NavLink>
               <NavLink to="/doctor/prescriptions" className={navClass}>Prescription History</NavLink>
+              <NavLink to="/doctor/reports" className={navClass}>Reports</NavLink>
               {/* <NavLink to="/doctor/telemedicine" className={navClass}>Telemedicine</NavLink> */}
               <NavLink to="/doctor/availability" className={navClass}>Availability</NavLink>
               <NavLink to="/doctor/profile" className={navClass}>Profile</NavLink>

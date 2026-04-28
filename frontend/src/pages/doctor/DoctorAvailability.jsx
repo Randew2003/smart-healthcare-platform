@@ -39,7 +39,7 @@ function formatSlotDate(dateValue) {
 }
 
 export default function DoctorAvailability() {
-  const { doctorId, setDoctorId, resolving, resolvedFrom } = useDoctorServiceId();
+  const { doctorId, resolving } = useDoctorServiceId();
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,7 +60,15 @@ export default function DoctorAvailability() {
 
   const load = useCallback(async () => {
     if (!isLoggedIn()) return;
-    if (!doctorId) return;
+    if (!doctorId) {
+      setDoctorName("");
+      setSpecialization("");
+      setAvailability([]);
+      if (!resolving) {
+        setError("Doctor profile is not linked yet. Open Doctor Profile to create/sync your doctor-service profile.");
+      }
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -82,7 +90,7 @@ export default function DoctorAvailability() {
     } finally {
       setLoading(false);
     }
-  }, [doctorId]);
+  }, [doctorId, resolving]);
 
   useEffect(() => {
     load();
@@ -97,7 +105,7 @@ export default function DoctorAvailability() {
     }
 
     if (!doctorId) {
-      setError("Set your doctor service id first.");
+      setError("Doctor profile is not linked yet. Open Doctor Profile to create/sync your doctor-service profile.");
       return;
     }
 
@@ -273,20 +281,6 @@ export default function DoctorAvailability() {
               <div className="text-xs font-extrabold text-slate-700">Doctor</div>
               <div className="mt-2 text-base font-black text-slate-900">{doctorName || "-"}</div>
               <div className="mt-1 text-sm font-semibold text-slate-600">{specialization || "-"}</div>
-
-              <div className="mt-4">
-                <label className="text-xs font-extrabold text-slate-700">Doctor Service ID</label>
-                <input
-                  value={doctorId}
-                  onChange={(e) => setDoctorId(e.target.value)}
-                  placeholder="Paste doctor-service doctor _id"
-                  className={inputClass}
-                />
-                <div className="mt-2 text-xs text-slate-500">
-                  {resolvedFrom ? `Resolved from: ${resolvedFrom}` : null}
-                  {resolving ? " (resolving...)" : null}
-                </div>
-              </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-black/5 bg-[#fbfdf9] p-3">

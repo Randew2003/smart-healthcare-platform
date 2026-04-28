@@ -94,8 +94,8 @@ export default function MyAppointments() {
                     <span className="font-mono text-[11px] text-slate-500">{appt._id}</span>
                   </div>
                   <div className="mt-2 text-slate-600 text-xs leading-6"><b>Doctor:</b> Dr. {appt.doctor?.name || "N/A"} ({appt.doctor?.specialization || ""})</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Date:</b> {appt.date}</div>
-                  <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Date:</b> {appt.date ? new Date(appt.date).toLocaleDateString() : "N/A"}</div>
+                  <div className="text-slate-600 text-xs leading-6"><b>Time:</b> {appt.time ? new Date(`2000-01-01T${appt.time}`).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "N/A"}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Reason:</b> {appt.notes || "N/A"}</div>
                   <div className="text-slate-600 text-xs leading-6"><b>Created:</b> {appt.createdAt ? new Date(appt.createdAt).toLocaleString() : "-"}</div>
 

@@ -18,6 +18,7 @@ import {
   leaveReportFeedback,
 
   // Doctor-specific endpoints
+  getDoctorReportsFeed,
   getPatientProfileForDoctor,
   getPatientMedicalHistoryForDoctor,
   getPatientPrescriptionsForDoctor,
@@ -26,6 +27,7 @@ import {
 import { protect, authorize } from "../middleware/auth.js";
 
 const router = Router();
+const MAX_REPORT_FILE_SIZE = 20 * 1024 * 1024;
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -39,11 +41,17 @@ const upload = multer({
       cb(null, `${Date.now()}_${Math.random().toString(16).slice(2)}_${safeOriginal}`);
     }
   }),
-  limits: { fileSize: 15 * 1024 * 1024 }
+  limits: { fileSize: MAX_REPORT_FILE_SIZE }
 });
 
 // Doctor-view routes
 // These routes allow doctors (or admins) to view patient data by patient userId.
+router.get(
+  "/doctor-view/reports",
+  protect,
+  authorize("doctor", "admin"),
+  getDoctorReportsFeed
+);
 router.get(
   "/doctor-view/:patientId/profile",
   protect,

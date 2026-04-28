@@ -201,16 +201,6 @@ export default function DoctorProfile() {
               </div>
             </div>
 
-            <div className="mt-4">
-              <label className="text-xs font-extrabold text-slate-700">Set doctor service id</label>
-              <input
-                value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
-                placeholder="Paste doctor-service doctor _id"
-                className={inputClass}
-              />
-            </div>
-
             {verificationStatus ? (
               <div className="mt-4 rounded-xl border border-[#fbb033]/35 bg-[#fbb033]/10 px-4 py-3 text-sm font-semibold text-[#7a4d00]">
                 Verification status: {verificationStatus}
