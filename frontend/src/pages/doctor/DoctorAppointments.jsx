@@ -441,7 +441,7 @@ export default function DoctorAppointments() {
             </div>
           ) : null}
 
-          <div className="mt-5 grid gap-4">
+          {/*<div className="mt-5 grid gap-4">
             <div className="rounded-2xl border border-slate-200 bg-[#f7fbf5] p-5">
               <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#5c7f31]">Prescription timestamp</div>
               <div className="mt-3 text-sm font-semibold text-slate-900">Automatically saved at creation time</div>
@@ -449,7 +449,7 @@ export default function DoctorAppointments() {
                 Each prescription now stores `prescriptionDate` from the moment the doctor saves it, so there is no extra date input during the appointment.
               </p>
             </div>
-          </div>
+          </div>*/}
 
           {error ? (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
