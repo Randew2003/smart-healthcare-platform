@@ -23,6 +23,93 @@ function addSixHours(timeValue) {
   return `${String(nextHours).padStart(2, "0")}:${String(nextMinutes).padStart(2, "0")}`;
 }
 
+function timeToMinutes(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(String(timeValue || ""))) {
+    return null;
+  }
+
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(totalMinutes) {
+  const safeMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function buildGeneratedTimeSlots(startTime, endTime, slotCount = 10) {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+
+  if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes || slotCount <= 0) {
+    return [];
+  }
+
+  const totalMinutes = endMinutes - startMinutes;
+  const slotDuration = totalMinutes / slotCount;
+
+  return Array.from({ length: slotCount }, (_, index) => {
+    const slotStart = Math.round(startMinutes + (slotDuration * index));
+    const slotEnd = Math.round(startMinutes + (slotDuration * (index + 1)));
+
+    return {
+      index: index + 1,
+      startTime: minutesToTime(slotStart),
+      endTime: minutesToTime(slotEnd),
+      durationMinutes: Math.max(slotEnd - slotStart, 0)
+    };
+  });
+}
+
+async function enrichAvailabilityWithBookings(doctor) {
+  if (!doctor) return doctor;
+
+  let appointments = [];
+
+  try {
+    const response = await fetch(
+      `${process.env.APPOINTMENT_SERVICE_URL}/api/appointments/doctor/${doctor._id}`
+    );
+
+    if (response.ok) {
+      appointments = await response.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch doctor appointments for availability:", error.message);
+  }
+
+  const availability = Array.isArray(doctor.availability) ? doctor.availability : [];
+
+  const enrichedAvailability = availability.map((slot) => {
+    const generatedTimeSlots = buildGeneratedTimeSlots(slot.startTime, slot.endTime, 10);
+    const bookedTimes = appointments
+      .filter(
+        (appointment) =>
+          String(appointment?.date || "").slice(0, 10) === String(slot?.date || "") &&
+          generatedTimeSlots.some((entry) => entry.startTime === appointment?.time) &&
+          appointment?.status !== "Cancelled"
+      )
+      .map((appointment) => appointment.time);
+
+    return {
+      ...slot.toObject(),
+      bookedCount: bookedTimes.length,
+      remainingCount: Math.max(generatedTimeSlots.length - bookedTimes.length, 0),
+      bookedTimes,
+      generatedTimeSlots,
+      isBooked: bookedTimes.length >= generatedTimeSlots.length && generatedTimeSlots.length > 0
+    };
+  });
+
+  return {
+    ...doctor.toObject(),
+    availability: enrichedAvailability
+  };
+}
+
 // CREATE doctor profile
 // POST /api/doctors
 exports.createDoctor = async (req, res) => {
@@ -180,14 +267,14 @@ exports.addAvailability = async (req, res) => {
       });
     }
 
-    const duplicateDay = doctor.availability.find(
-      (slot) => String(slot?.day || "").toLowerCase() === day.toLowerCase()
+    const duplicateDate = doctor.availability.find(
+      (slot) => String(slot?.date || "") === String(date)
     );
 
-    if (duplicateDay) {
+    if (duplicateDate) {
       return res.status(400).json({
         success: false,
-        message: `Availability for ${day} already exists. Please choose a different date.`,
+        message: `Availability for ${date} already exists. Please choose a different date.`,
       });
     }
 
@@ -228,10 +315,12 @@ exports.getAvailability = async (req, res) => {
       });
     }
 
+    const enrichedDoctor = await enrichAvailabilityWithBookings(doctor);
+
     res.status(200).json({
       success: true,
-      availabilityCount: doctor.availability.length,
-      data: doctor,
+      availabilityCount: enrichedDoctor.availability.length,
+      data: enrichedDoctor,
     });
   } catch (error) {
     res.status(500).json({
@@ -274,16 +363,16 @@ exports.updateAvailability = async (req, res) => {
         });
       }
 
-      const duplicateDay = doctor.availability.find(
+      const duplicateDate = doctor.availability.find(
         (entry) =>
           String(entry?._id) !== String(slot._id) &&
-          String(entry?.day || "").toLowerCase() === nextDay.toLowerCase()
+          String(entry?.date || "") === String(date)
       );
 
-      if (duplicateDay) {
+      if (duplicateDate) {
         return res.status(400).json({
           success: false,
-          message: `Availability for ${nextDay} already exists. Please choose a different date.`,
+          message: `Availability for ${date} already exists. Please choose a different date.`,
         });
       }
 
@@ -1036,11 +1125,12 @@ exports.getDoctorDashboard = async (req, res) => {
     ).length;
 
     // Availability stats from doctor-service
-    const totalAvailabilitySlots = doctor.availability.length;
-    const bookedAvailabilitySlots = doctor.availability.filter(
+    const doctorWithAvailability = await enrichAvailabilityWithBookings(doctor);
+    const totalAvailabilitySlots = doctorWithAvailability.availability.length;
+    const bookedAvailabilitySlots = doctorWithAvailability.availability.filter(
       (slot) => slot.isBooked === true
     ).length;
-    const freeAvailabilitySlots = doctor.availability.filter(
+    const freeAvailabilitySlots = doctorWithAvailability.availability.filter(
       (slot) => slot.isBooked === false
     ).length;
 

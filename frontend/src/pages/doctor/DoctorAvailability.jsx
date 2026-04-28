@@ -114,13 +114,12 @@ export default function DoctorAvailability() {
       return;
     }
 
-    const selectedDay = getDayFromDate(date);
-    const duplicateDay = availability.find(
-      (slot) => String(slot?.day || "").toLowerCase() === selectedDay.toLowerCase()
+    const duplicateDate = availability.find(
+      (slot) => String(slot?.date || "") === String(date)
     );
 
-    if (duplicateDay) {
-      setError(`You already have an availability slot for ${selectedDay}. Choose a different date.`);
+    if (duplicateDate) {
+      setError(`You already have an availability slot for ${date}. Choose a different date.`);
       return;
     }
 
@@ -164,15 +163,14 @@ export default function DoctorAvailability() {
       return;
     }
 
-    const selectedDay = getDayFromDate(editDate);
-    const duplicateDay = availability.find(
+    const duplicateDate = availability.find(
       (slot) =>
         String(slot?._id) !== String(editingId) &&
-        String(slot?.day || "").toLowerCase() === selectedDay.toLowerCase()
+        String(slot?.date || "") === String(editDate)
     );
 
-    if (duplicateDay) {
-      setError(`You already have an availability slot for ${selectedDay}. Choose a different date.`);
+    if (duplicateDate) {
+      setError(`You already have an availability slot for ${editDate}. Choose a different date.`);
       return;
     }
 
@@ -221,7 +219,7 @@ export default function DoctorAvailability() {
     }
   };
 
-  const bookedCount = useMemo(
+  const fullyBookedCount = useMemo(
     () => availability.filter((slot) => slot?.isBooked).length,
     [availability]
   );
@@ -288,8 +286,8 @@ export default function DoctorAvailability() {
                   <div className="mt-1 text-xl font-black text-slate-900">{availability.length}</div>
                 </div>
                 <div className="rounded-xl border border-black/5 bg-[#fbfdf9] p-3">
-                  <div className="text-xs font-extrabold text-slate-600">Booked</div>
-                  <div className="mt-1 text-xl font-black text-slate-900">{bookedCount}</div>
+                  <div className="text-xs font-extrabold text-slate-600">Fully booked</div>
+                  <div className="mt-1 text-xl font-black text-slate-900">{fullyBookedCount}</div>
                 </div>
               </div>
             </div>
@@ -299,7 +297,7 @@ export default function DoctorAvailability() {
               <div className="mt-4 rounded-2xl border border-[#00bbb3]/20 bg-[#00bbb3]/10 p-4">
                 <div className="text-sm font-black text-slate-900">Availability rule</div>
                 <p className="mt-2 text-sm text-slate-700">
-                  Each availability slot covers exactly 6 hours from the selected start time. A doctor can only keep one slot for each weekday, so if one Sunday is already added, another Sunday cannot be added again.
+                  Each availability slot covers exactly 6 hours from the selected start time. Patients can book up to 10 appointments inside that window, and the system divides the session into 10 equal time slots automatically.
                 </p>
               </div>
 
@@ -374,7 +372,7 @@ export default function DoctorAvailability() {
                           {slot?.day || "-"} | {formatSlotDate(slot?.date)} | {slot?.startTime || "-"} - {slot?.endTime || "-"}
                         </div>
                         <div className="mt-1 text-xs text-slate-600">
-                          Status: {slot?.isBooked ? "Booked" : "Available"}
+                          Status: {slot?.isBooked ? "Fully booked" : "Open"} | Booked {slot?.bookedCount ?? 0}/10
                         </div>
                       </div>
 

@@ -1,6 +1,45 @@
 import Appointment from '../models/appointmentModel.js';
 import axios from "axios";
 
+function timeToMinutes(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(String(timeValue || ""))) {
+    return null;
+  }
+
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(totalMinutes) {
+  const safeMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function buildGeneratedTimeSlots(startTime, endTime, slotCount = 10) {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+
+  if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes || slotCount <= 0) {
+    return [];
+  }
+
+  const totalMinutes = endMinutes - startMinutes;
+  const slotDuration = totalMinutes / slotCount;
+
+  return Array.from({ length: slotCount }, (_, index) => {
+    const slotStart = Math.round(startMinutes + (slotDuration * index));
+    const slotEnd = Math.round(startMinutes + (slotDuration * (index + 1)));
+
+    return {
+      index: index + 1,
+      startTime: minutesToTime(slotStart),
+      endTime: minutesToTime(slotEnd)
+    };
+  });
+}
 
 // Create appointment
 export const createAppointment = async (req, res) => {
@@ -23,8 +62,9 @@ export const createAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Time slot already booked' });
     }
 
-    // 🔥 CHECK DOCTOR AVAILABILITY
+    // Check doctor availability window and the generated 10 equal appointment slots
     let selectedSlot = null;
+    let generatedTimeSlots = [];
 
     try {
       const availabilityRes = await axios.get(
@@ -37,13 +77,35 @@ export const createAppointment = async (req, res) => {
        (slot) =>
          slot.date === date &&
          time >= slot.startTime &&
-         time < slot.endTime &&
-         slot.isBooked === false
+         time < slot.endTime
       );
 
     if (!selectedSlot) {
       return res.status(400).json({
          message: "Doctor is not available at this selected time"
+      });
+    }
+
+    generatedTimeSlots = buildGeneratedTimeSlots(selectedSlot.startTime, selectedSlot.endTime, 10);
+
+    const selectedGeneratedSlot = generatedTimeSlots.find((slot) => slot.startTime === time);
+
+    if (!selectedGeneratedSlot) {
+      return res.status(400).json({
+        message: "Please choose one of the available appointment times."
+      });
+    }
+
+    const slotBookingCount = await Appointment.countDocuments({
+      doctorId,
+      date,
+      time: { $in: generatedTimeSlots.map((slot) => slot.startTime) },
+      status: { $ne: 'Cancelled' }
+    });
+
+    if (slotBookingCount >= generatedTimeSlots.length) {
+      return res.status(400).json({
+        message: "This doctor's availability is fully booked for the selected date."
       });
     }
 
@@ -67,18 +129,6 @@ export const createAppointment = async (req, res) => {
     // Generate meeting link (for video consultation)
     appointment.meetingLink = `https://meet.jit.si/appointment-${appointment._id}`;
 
-
-    // 🔥 MARK SLOT AS BOOKED
-    try {
-       await axios.put(
-          `http://doctor-service:4005/api/doctors/${doctorId}/availability/${selectedSlot._id}`,
-        {
-          isBooked: true
-        }
-      );
-    } catch (err) {
-       console.error("Failed to update slot booking:", err.message);
-    }
 
     await appointment.save();
 
