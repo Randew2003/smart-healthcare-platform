@@ -2,15 +2,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../utils/api";
 import { getUser, isLoggedIn } from "../../utils/auth";
 
-const STORAGE_KEY = "doctorServiceDoctorId";
+const STORAGE_KEY_PREFIX = "doctorServiceDoctorId";
+
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function getStorageKey(userEmail) {
+  const normalizedEmail = normalizeEmail(userEmail);
+  return normalizedEmail ? `${STORAGE_KEY_PREFIX}:${normalizedEmail}` : STORAGE_KEY_PREFIX;
+}
 
 export function useDoctorServiceId() {
   const user = getUser();
+  const userEmail = normalizeEmail(user?.email);
+  const scopedStorageKey = getStorageKey(userEmail);
 
-  const [doctorId, setDoctorIdState] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) || "";
-  });
-  const [resolving, setResolving] = useState(false);
+  const [doctorId, setDoctorIdState] = useState("");
+  const [resolving, setResolving] = useState(Boolean(userEmail && isLoggedIn()));
   const [resolvedFrom, setResolvedFrom] = useState("");
 
   const setDoctorId = useCallback((nextId) => {
@@ -18,38 +27,62 @@ export function useDoctorServiceId() {
     setDoctorIdState(normalized);
 
     if (normalized) {
-      localStorage.setItem(STORAGE_KEY, normalized);
+      localStorage.setItem(scopedStorageKey, normalized);
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(scopedStorageKey);
     }
-  }, []);
+  }, [scopedStorageKey]);
 
   const resolve = useCallback(async () => {
-    if (!isLoggedIn()) return;
-    if (doctorId) return;
-
-    if (!user?.email) return;
+    if (!isLoggedIn() || !userEmail) {
+      setDoctorIdState("");
+      setResolvedFrom("");
+      setResolving(false);
+      return;
+    }
 
     setResolving(true);
     try {
+      const cachedDoctorId = String(localStorage.getItem(scopedStorageKey) || "").trim();
+
+      if (cachedDoctorId) {
+        try {
+          const { data } = await api.get(`/api/doctors/${encodeURIComponent(cachedDoctorId)}`);
+          const doctor = data?.data || data;
+
+          if (doctor?._id && normalizeEmail(doctor?.email) === userEmail) {
+            setDoctorIdState(doctor._id);
+            setResolvedFrom("validated cached doctor-service ID");
+            return;
+          }
+        } catch {
+          // Ignore and continue with a fresh lookup by email.
+        }
+
+        localStorage.removeItem(scopedStorageKey);
+        setDoctorIdState("");
+      }
+
       const { data } = await api.get("/api/doctors");
       const list = Array.isArray(data) ? data : data?.data;
       const doctors = Array.isArray(list) ? list : [];
 
-      const match = doctors.find(
-        (d) => String(d?.email || "").toLowerCase() === String(user.email).toLowerCase()
-      );
+      const match = doctors.find((doctor) => normalizeEmail(doctor?.email) === userEmail);
 
       if (match?._id) {
         setDoctorId(match._id);
         setResolvedFrom("email match (doctor-service)");
+      } else {
+        setDoctorIdState("");
+        setResolvedFrom("no doctor-service profile matched login email");
       }
     } catch {
-      // ignore
+      setDoctorIdState("");
+      setResolvedFrom("");
     } finally {
       setResolving(false);
     }
-  }, [doctorId, setDoctorId, user?.email]);
+  }, [scopedStorageKey, setDoctorId, userEmail]);
 
   useEffect(() => {
     resolve();
