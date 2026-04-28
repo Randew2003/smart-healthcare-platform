@@ -15,6 +15,7 @@ export default defineConfig({
       "/api/patients": { target: "http://localhost:4003", changeOrigin: true },
       "/api/payments": { target: "http://localhost:4004", changeOrigin: true },
       "/api/doctors": { target: "http://localhost:4005", changeOrigin: true },
+      "/api/prescriptions": { target: "http://localhost:4005", changeOrigin: true },
       "/api/sessions": { target: "http://localhost:4006", changeOrigin: true }
     }
   }

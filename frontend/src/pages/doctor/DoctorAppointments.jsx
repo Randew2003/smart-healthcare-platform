@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
-import { isLoggedIn } from "../../utils/auth";
+import { getUser, isLoggedIn } from "../../utils/auth";
 import { normalizeApiPayload, statusBadgeClasses, useDoctorServiceId } from "./doctorUtils";
 import banner from "../../assets/patientassets/banner2.png";
 
@@ -51,7 +51,9 @@ function createPrescriptionDraft(appointment) {
     prescriptionDate: createdAt,
     diagnosis: "",
     medicines: [createMedicine()],
-    notes: ""
+    notes: "",
+    requiresMedicalReport: false,
+    medicalReportRequestNote: ""
   };
 }
 
@@ -84,6 +86,7 @@ function summarizePrescription(prescription) {
 
 export default function DoctorAppointments() {
   const { doctorId, setDoctorId, resolving, resolvedFrom } = useDoctorServiceId();
+  const doctorUser = getUser();
 
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
@@ -316,6 +319,8 @@ export default function DoctorAppointments() {
         appointmentId: appointment._id,
         prescriptionDate: prescriptionForm.prescriptionDate || new Date().toISOString(),
         diagnosis: prescriptionForm.diagnosis.trim(),
+        requiresMedicalReport: Boolean(prescriptionForm.requiresMedicalReport),
+        medicalReportRequestNote: String(prescriptionForm.medicalReportRequestNote || "").trim(),
         medicines: cleanedMedicines.map((item) => ({
           name: item.name.trim(),
           dosage: item.dosage.trim(),
@@ -329,6 +334,19 @@ export default function DoctorAppointments() {
         `/api/doctors/${encodeURIComponent(doctorId)}/prescriptions`,
         payload
       );
+
+      // Notify patient (email/SMS) using existing notification-service behavior.
+      api
+        .post("/api/notifications/event", {
+          type: "PRESCRIPTION_CREATED",
+          patient: {
+            email: appointment?.patientEmail
+          },
+          doctor: {
+            email: doctorUser?.email
+          }
+        })
+        .catch(() => undefined);
 
       setMessage(data?.message || "Prescription created successfully.");
       await loadPrescriptionHistory(appointment);
@@ -662,6 +680,43 @@ export default function DoctorAppointments() {
                         placeholder="Add follow-up guidance, rest instructions, or review notes"
                       />
                     </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-slate-200 bg-[#fbfcfe] p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-slate-500">
+                          Medical Reports
+                        </div>
+                        <div className="mt-1 text-sm text-slate-600">
+                          Request the patient to upload medical reports related to this prescription.
+                        </div>
+                      </div>
+
+                      <label className="inline-flex items-center gap-2 text-sm font-bold text-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(prescriptionForm.requiresMedicalReport)}
+                          onChange={(e) => updatePrescriptionField("requiresMedicalReport", e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-[#80c342] focus:ring-[#80c342]/30"
+                        />
+                        Request reports
+                      </label>
+                    </div>
+
+                    {prescriptionForm.requiresMedicalReport ? (
+                      <div className="mt-4">
+                        <label className="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">
+                          Request note (optional)
+                        </label>
+                        <textarea
+                          value={prescriptionForm.medicalReportRequestNote}
+                          onChange={(e) => updatePrescriptionField("medicalReportRequestNote", e.target.value)}
+                          className={textareaClass}
+                          placeholder="Example: Please upload your latest blood test report and any imaging results."
+                        />
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="mt-6 flex items-center justify-between gap-3">
