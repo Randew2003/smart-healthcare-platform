@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { getUser, isLoggedIn, logout } from "../utils/auth";
 import { api } from "../utils/api";
 import { useDoctorServiceId } from "../pages/doctor/doctorUtils";
@@ -8,6 +8,9 @@ import logo from "../assets/logo.png";
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [unseenPrescriptionCount, setUnseenPrescriptionCount] = useState(0);
+  const [unseenReportCount, setUnseenReportCount] = useState(0);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef(null);
 
   const user = getUser();
   const navigate = useNavigate();
