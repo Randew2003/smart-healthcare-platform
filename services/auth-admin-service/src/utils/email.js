@@ -49,3 +49,35 @@ export async function sendPasswordResetOtpEmail({ to, fullName, otp, expiresMinu
 
   return true;
 }
+
+export async function sendDoctorApprovalEmail({ to, fullName, appName = process.env.APP_NAME || "MediClinic" }) {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.warn("SMTP is not configured. Skipping doctor approval email.");
+    return false;
+  }
+
+  const from =
+    process.env.SMTP_FROM ||
+    process.env.EMAIL_FROM ||
+    process.env.SMTP_USER ||
+    process.env.EMAIL_USER;
+
+  const doctorName = fullName || "Doctor";
+
+  const info = await transporter.sendMail({
+    from,
+    to,
+    subject: `${appName} doctor account approved`,
+    text: `Congratulations ${doctorName},\n\nYour doctor account has been approved. You can now log in to ${appName} and start using your account.\n\nPlease log in to continue.`,
+    html: `
+      <p>Congratulations ${doctorName},</p>
+      <p>Your doctor account has been approved.</p>
+      <p>You can now log in to <strong>${appName}</strong> and start using your account.</p>
+      <p>Please log in to continue.</p>
+    `
+  });
+
+  return info;
+}

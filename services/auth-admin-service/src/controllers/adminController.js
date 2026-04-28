@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { syncDoctorToDoctorService } from "../utils/doctorServiceSync.js";
+import { sendDoctorApprovalEmail } from "../utils/email.js";
 
 export async function getAllUsers(_req, res) {
   try {
@@ -42,6 +43,16 @@ export async function verifyDoctor(req, res) {
     if (status === "verified") {
       // Non-blocking best-effort sync into doctor-service so patients can list doctors.
       syncDoctorToDoctorService(doctor);
+
+      // Best-effort notification email for the approved doctor.
+      const emailInfo = await sendDoctorApprovalEmail({
+        to: doctor.email,
+        fullName: doctor.fullName
+      });
+
+      console.log(
+        `Doctor approval email ${emailInfo?.accepted?.includes(doctor.email) ? "accepted" : "sent"} for ${doctor.email}`
+      );
     }
 
     return res.json({ message: `Doctor ${status}.`, doctor });
