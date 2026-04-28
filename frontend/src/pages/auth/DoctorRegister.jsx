@@ -40,6 +40,11 @@ export default function DoctorRegister() {
     doctorApplication: initialApplication
   });
 
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^0\d{9}$/;
+  const licensePattern = /^[A-Za-z0-9\-\/]{4,30}$/;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -87,15 +92,117 @@ export default function DoctorRegister() {
     setError("");
     setSuccess("");
 
-    const { fullName, email, password, doctorApplication } = formData;
+    const fullName = formData.fullName.trim();
+    const email = formData.email.trim();
+    const password = formData.password;
+    const phone = formData.phone.trim();
+    const doctorApplication = {
+      ...formData.doctorApplication,
+      dob: formData.doctorApplication.dob.trim(),
+      licenseNumber: formData.doctorApplication.licenseNumber.trim(),
+      specialization: formData.doctorApplication.specialization.trim(),
+      clinicName: formData.doctorApplication.clinicName.trim(),
+      yearsExperience: formData.doctorApplication.yearsExperience.trim(),
+      idProofFileName: formData.doctorApplication.idProofFileName.trim(),
+      medicalCertificateFileName: formData.doctorApplication.medicalCertificateFileName.trim()
+    };
 
-    if (!fullName || !email || !password || !doctorApplication.licenseNumber || !doctorApplication.specialization) {
-      setError("Full name, email, password, license number, and specialization are required.");
+    if (!fullName) {
+      setError("Full name is required.");
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (fullName.length < 2) {
+      setError("Full name must be at least 2 characters.");
+      return;
+    }
+
+    if (!email) {
+      setError("Email is required.");
+      return;
+    }
+
+    if (!emailPattern.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required.");
+      return;
+    }
+
+    if (!passwordPattern.test(password)) {
+      setError(
+        "Password must be at least 6 characters and include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
+
+    if (phone && !phonePattern.test(phone)) {
+      setError("Phone number must start with 0 and be 10 digits (e.g. 0712345678).");
+      return;
+    }
+
+    if (!doctorApplication.dob) {
+      setError("Date of birth is required.");
+      return;
+    }
+
+    const dobDate = new Date(doctorApplication.dob);
+    if (Number.isNaN(dobDate.getTime())) {
+      setError("Please enter a valid date of birth.");
+      return;
+    }
+
+    if (dobDate >= new Date()) {
+      setError("Date of birth must be in the past.");
+      return;
+    }
+
+    if (!doctorApplication.licenseNumber) {
+      setError("License number is required.");
+      return;
+    }
+
+    if (!licensePattern.test(doctorApplication.licenseNumber)) {
+      setError("License number must be 4 to 30 characters and may include letters, numbers, -, or /.");
+      return;
+    }
+
+    if (!doctorApplication.specialization) {
+      setError("Specialization is required.");
+      return;
+    }
+
+    if (!doctorApplication.clinicName) {
+      setError("Clinic or hospital name is required.");
+      return;
+    }
+
+    if (doctorApplication.clinicName.length < 2) {
+      setError("Clinic or hospital name must be at least 2 characters.");
+      return;
+    }
+
+    if (!doctorApplication.yearsExperience) {
+      setError("Years of experience is required.");
+      return;
+    }
+
+    const yearsExperience = Number(doctorApplication.yearsExperience);
+    if (!Number.isInteger(yearsExperience) || yearsExperience < 0 || yearsExperience > 70) {
+      setError("Years of experience must be a valid number between 0 and 70.");
+      return;
+    }
+
+    if (!doctorApplication.idProofFileName) {
+      setError("ID proof document is required.");
+      return;
+    }
+
+    if (!doctorApplication.medicalCertificateFileName) {
+      setError("Medical certificate document is required.");
       return;
     }
 
@@ -111,7 +218,7 @@ export default function DoctorRegister() {
           fullName,
           email,
           password,
-          phone: formData.phone,
+          phone,
           role: "doctor",
           doctorApplication
         })
@@ -224,6 +331,8 @@ export default function DoctorRegister() {
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Enter your full name"
+                      required
+                      minLength={2}
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -236,6 +345,7 @@ export default function DoctorRegister() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Enter your email"
+                      required
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -250,6 +360,9 @@ export default function DoctorRegister() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Create a password"
+                      required
+                      minLength={6}
+                      title="At least 6 characters with uppercase, lowercase, number, and special character"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -261,7 +374,8 @@ export default function DoctorRegister() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="Enter your phone number"
+                      placeholder="0XXXXXXXXX (10 digits)"
+                      title="Start with 0 and enter 10 digits, e.g. 0712345678"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -275,6 +389,7 @@ export default function DoctorRegister() {
                       name="dob"
                       value={formData.doctorApplication.dob}
                       onChange={handleApplicationChange}
+                      required
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -287,6 +402,11 @@ export default function DoctorRegister() {
                       value={formData.doctorApplication.licenseNumber}
                       onChange={handleApplicationChange}
                       placeholder="Enter medical license number"
+                      required
+                      minLength={4}
+                      maxLength={30}
+                      pattern="[A-Za-z0-9\-/]{4,30}"
+                      title="4 to 30 characters, letters/numbers and - or / only"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -299,6 +419,7 @@ export default function DoctorRegister() {
                       name="specialization"
                       value={formData.doctorApplication.specialization}
                       onChange={handleApplicationChange}
+                      required
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select specialization</option>
@@ -318,6 +439,8 @@ export default function DoctorRegister() {
                       value={formData.doctorApplication.clinicName}
                       onChange={handleApplicationChange}
                       placeholder="Enter clinic or hospital name"
+                      required
+                      minLength={2}
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -329,10 +452,13 @@ export default function DoctorRegister() {
                     <input
                       type="number"
                       min="0"
+                      max="70"
                       name="yearsExperience"
                       value={formData.doctorApplication.yearsExperience}
                       onChange={handleApplicationChange}
                       placeholder="Enter years of experience"
+                      required
+                      step="1"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
@@ -344,6 +470,7 @@ export default function DoctorRegister() {
                       name="idProofFileName"
                       onChange={handleDocumentChange}
                       accept="image/*,.pdf"
+                      required
                       className="block w-full cursor-pointer rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
                     />
                     <p className="mt-2 text-xs text-slate-500">
@@ -359,6 +486,7 @@ export default function DoctorRegister() {
                     name="medicalCertificateFileName"
                     onChange={handleDocumentChange}
                     accept="image/*,.pdf"
+                    required
                     className="block w-full cursor-pointer rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
                   />
                   <p className="mt-2 text-xs text-slate-500">

@@ -17,6 +17,10 @@ export default function AdminRegister() {
     adminSecret: ""
   });
 
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^0\d{9}$/;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -49,13 +53,56 @@ export default function AdminRegister() {
     setError("");
     setSuccess("");
 
-    if (!formData.fullName || !formData.email || !formData.password || !formData.adminSecret) {
-      setError("All fields are required.");
+    const fullName = formData.fullName.trim();
+    const email = formData.email.trim();
+    const password = formData.password;
+    const phone = formData.phone.trim();
+    const adminSecret = formData.adminSecret.trim();
+
+    if (!fullName) {
+      setError("Full name is required.");
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (fullName.length < 2) {
+      setError("Full name must be at least 2 characters.");
+      return;
+    }
+
+    if (!email) {
+      setError("Email is required.");
+      return;
+    }
+
+    if (!emailPattern.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!password) {
+      setError("Password is required.");
+      return;
+    }
+
+    if (!passwordPattern.test(password)) {
+      setError(
+        "Password must be at least 6 characters and include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
+
+    if (phone && !phonePattern.test(phone)) {
+      setError("Phone number must start with 0 and be 10 digits (e.g. 0712345678).");
+      return;
+    }
+
+    if (!adminSecret) {
+      setError("Admin secret key is required.");
+      return;
+    }
+
+    if (adminSecret.length < 6) {
+      setError("Admin secret key must be at least 6 characters.");
       return;
     }
 
@@ -68,11 +115,11 @@ export default function AdminRegister() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-          phone: formData.phone,
-          adminSecret: formData.adminSecret,
+          fullName,
+          email,
+          password,
+          phone,
+          adminSecret,
           role: "admin"
         })
       });
@@ -205,6 +252,8 @@ export default function AdminRegister() {
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Enter your full name"
+                      required
+                      minLength={2}
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       data-aos="fade-up"
                       data-aos-delay="200"
@@ -219,6 +268,7 @@ export default function AdminRegister() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Enter your email"
+                      required
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       data-aos="fade-up"
                       data-aos-delay="230"
@@ -235,6 +285,9 @@ export default function AdminRegister() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Enter your password"
+                      required
+                      minLength={6}
+                      title="At least 6 characters with uppercase, lowercase, number, and special character"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       data-aos="fade-up"
                       data-aos-delay="260"
@@ -248,7 +301,8 @@ export default function AdminRegister() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="Enter your phone number"
+                      placeholder="0XXXXXXXXX (10 digits)"
+                      title="Start with 0 and enter 10 digits, e.g. 0712345678"
                       className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                       data-aos="fade-up"
                       data-aos-delay="290"
@@ -264,6 +318,8 @@ export default function AdminRegister() {
                     value={formData.adminSecret}
                     onChange={handleChange}
                     placeholder="Enter the admin registration secret"
+                    required
+                    minLength={6}
                     className="w-full rounded-2xl border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     data-aos="fade-up"
                     data-aos-delay="320"
