@@ -472,7 +472,7 @@ export default function AdminAppointments() {
                   <p className="mt-1 text-sm">Try adjusting your filters or search terms.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-3xl border border-slate-200">
+                <div className="max-h-[78vh] overflow-auto rounded-3xl border border-slate-200">
                   <table className="min-w-7xl w-full divide-y divide-slate-200 bg-white">
                     <thead className="sticky top-0 z-10 bg-slate-50">
                       <tr>
