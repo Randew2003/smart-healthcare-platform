@@ -34,7 +34,7 @@ export default function Login() {
   const getRedirectPath = (user) => {
     if (!user?.role) return "/";
 
-    if (user.role === "doctor") return "/appointments";
+    if (user.role === "doctor") return "/doctor";
     if (user.role === "admin") return "/admin";
 
     return "/";
