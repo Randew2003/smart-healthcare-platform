@@ -1,9 +1,60 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import MainLayout from "./../../layouts/MainLayout";
-import { api } from "./../../utils/api";
-import { getUser, isLoggedIn } from "./../../utils/auth";
-import { submitPayHereCheckout } from "./../../utils/payhereCheckout";
+import MainLayout from "../../layouts/MainLayout";
+import { api } from "../../utils/api";
+import { getUser, isLoggedIn } from "../../utils/auth";
+import { submitPayHereCheckout } from "../../utils/payhereCheckout";
+
+function timeToMinutes(timeValue) {
+  if (!/^\d{2}:\d{2}$/.test(String(timeValue || ""))) return null;
+
+  const [hours, minutes] = String(timeValue).split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(totalMinutes) {
+  const safeMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function buildGeneratedTimeSlots(startTime, endTime, slotCount = 10) {
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+
+  if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes || slotCount <= 0) {
+    return [];
+  }
+
+  const totalMinutes = endMinutes - startMinutes;
+  const slotDuration = totalMinutes / slotCount;
+
+  return Array.from({ length: slotCount }, (_, index) => {
+    const slotStart = Math.round(startMinutes + (slotDuration * index));
+    const slotEnd = Math.round(startMinutes + (slotDuration * (index + 1)));
+
+    return {
+      index: index + 1,
+      startTime: minutesToTime(slotStart),
+      endTime: minutesToTime(slotEnd)
+    };
+  });
+}
+
+function formatDisplayDate(dateValue) {
+  if (!dateValue) return "";
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+
+  return date.toLocaleDateString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
 
 export default function BookAppointment() {
   const [searchParams] = useSearchParams();
@@ -14,8 +65,7 @@ export default function BookAppointment() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [availableDates, setAvailableDates] = useState([]);
+  const [availabilityMessage, setAvailabilityMessage] = useState("");
 
   const [form, setForm] = useState({
     patientId: user?.id || user?._id || "PATIENT123",
@@ -29,6 +79,7 @@ export default function BookAppointment() {
 
   useEffect(() => {
     if (!doctorIdFromQuery) return;
+
     setForm((prev) => ({
       ...prev,
       doctorId: prev.doctorId || doctorIdFromQuery
@@ -36,8 +87,12 @@ export default function BookAppointment() {
   }, [doctorIdFromQuery]);
 
   const appointmentFee = 1500;
+  const selectedDoctor = doctors.find((doctor) => String(doctor?._id) === String(form.doctorId));
+  const selectedAvailability = availability.find((slot) => slot.date === form.date) || null;
+  const availableDates = availability.map((slot) => slot.date).sort();
+  const availableTimeSlots = selectedAvailability?.generatedTimeSlots || [];
+  const remainingCount = selectedAvailability?.remainingCount ?? 0;
 
-  // 🔥 fetch doctors (from doctor service)
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -52,65 +107,58 @@ export default function BookAppointment() {
   }, []);
 
   useEffect(() => {
-
-    console.log("Doctor ID changed:", form.doctorId);
     if (!form.doctorId) {
       setAvailability([]);
-      setAvailableDates([]);
-      setAvailableTimes([]);
-      setForm(prev => ({ ...prev, date: "", time: "" }));
+      setAvailabilityMessage("");
+      setForm((prev) => ({ ...prev, date: "", time: "" }));
       return;
     }
 
-  const fetchAvailability = async () => {
-    try {
-      const res = await api.get(`/api/doctors/${form.doctorId}/availability`);
-      const doctor = res.data.data;
-      console.log("API CALLED ✅");
+    const fetchAvailability = async () => {
+      try {
+        setLoading(true);
+        setAvailabilityMessage("");
 
-      console.log("Doctor availability:", doctor.availability);
+        const res = await api.get(`/api/doctors/${form.doctorId}/availability`);
+        const doctor = res.data.data;
+        const slots = Array.isArray(doctor?.availability) ? doctor.availability : [];
+        const openSlots = slots
+          .map((slot) => ({
+            ...slot,
+            generatedTimeSlots: Array.isArray(slot.generatedTimeSlots) && slot.generatedTimeSlots.length > 0
+              ? slot.generatedTimeSlots
+              : buildGeneratedTimeSlots(slot.startTime, slot.endTime, 10)
+          }))
+          .filter((slot) => !slot.isBooked);
 
-      const avail = doctor.availability || [];
-      setAvailability(avail);
+        setAvailability(openSlots);
 
-      // Extract unique available dates
-      const dates = [...new Set(avail.filter(slot => !slot.isBooked).map(slot => slot.date))].sort();
-      setAvailableDates(dates);
-    } catch (err) {
-      console.log("Availability fetch error:", err.message);
-      setAvailability([]);
-      setAvailableDates([]);
-    }
-  };
+        if (openSlots.length === 0) {
+          setAvailabilityMessage("This doctor has no open dates right now.");
+        }
+      } catch (err) {
+        console.log("Availability fetch error:", err.message);
+        setAvailability([]);
+        setAvailabilityMessage("Failed to load doctor availability.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchAvailability();
   }, [form.doctorId]);
 
-
-  useEffect(() => {
-  if (!form.date) {
-    setAvailableTimes([]);
-    return;
-  }
-
-  const slots = availability.filter(
-    (slot) =>
-      slot.date === form.date && slot.isBooked === false
-  );
-
-  // convert slots → time list
-  const times = slots.map((slot) => slot.startTime);
-
-  setAvailableTimes(times);
- }, [form.date, availability]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => {
+
+    setForm((prev) => {
       const updated = { ...prev, [name]: value };
-      if (name === 'date') {
+
+      if (name === "doctorId") {
+        updated.date = "";
         updated.time = "";
       }
+
       return updated;
     });
   };
@@ -158,21 +206,18 @@ export default function BookAppointment() {
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-5xl">
             <div className="rounded-2xl border border-[#D8EAF6] bg-white p-5 shadow-sm">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-[#35B85A]">
-                  Appointment
-                </p>
-                <h1 className="mt-1 text-2xl font-bold text-[#2459A6]">
-                  Book Your Appointment
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  Select a doctor, choose a date and time, and confirm your visit.
-                </p>
-              </div>
+              <p className="text-xs font-bold uppercase tracking-wide text-[#35B85A]">
+                Appointment
+              </p>
+              <h1 className="mt-1 text-2xl font-bold text-[#2459A6]">
+                Book Your Appointment
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Select a doctor, choose an available date, then pick one of the 10 equal times from the doctor's 6-hour session.
+              </p>
             </div>
 
             <div className="mt-5 space-y-5">
-              {/* Doctor Selection */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Select Doctor</p>
                 <select
@@ -188,45 +233,111 @@ export default function BookAppointment() {
                     </option>
                   ))}
                 </select>
+
+                {selectedDoctor ? (
+                  <div className="mt-4 rounded-xl bg-[#F6FAFD] p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-base font-bold text-[#2459A6]">
+                          Dr. {selectedDoctor.name}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          {selectedDoctor.specialization || "Specialist"}
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                        {availability.length} date{availability.length === 1 ? "" : "s"} available
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
-              {/* Date Selection */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Select Date</p>
-                <select
-                  name="date"
-                  value={form.date}
-                  onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 outline-none"
-                >
-                  <option value="">-- Select Date --</option>
-                  {availableDates.map((date) => (
-                    <option key={date} value={date}>
-                      {new Date(date).toLocaleDateString()}
-                    </option>
-                  ))}
-                </select>
+                {loading ? (
+                  <div className="mt-2 rounded-xl border border-dashed border-[#D8EAF6] px-4 py-5 text-sm text-slate-500">
+                    Loading available dates...
+                  </div>
+                ) : availableDates.length === 0 ? (
+                  <div className="mt-2 rounded-xl border border-dashed border-[#D8EAF6] px-4 py-5 text-sm text-slate-500">
+                    {availabilityMessage || "Select a doctor to see availability."}
+                  </div>
+                ) : (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {availableDates.map((date) => {
+                      const isSelected = form.date === date;
+
+                      return (
+                        <button
+                          key={date}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, date, time: "" }))}
+                          className={`rounded-xl border px-4 py-3 text-left transition ${
+                            isSelected
+                              ? "border-[#2459A6] bg-[#2459A6] text-white"
+                              : "border-[#D8EAF6] bg-[#F6FAFD] text-slate-800 hover:border-[#2459A6]"
+                          }`}
+                        >
+                          <div className="text-xs font-semibold uppercase tracking-wide opacity-80">
+                            Available Date
+                          </div>
+                          <div className="mt-1 text-sm font-bold">
+                            {formatDisplayDate(date)}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
-              {/* Time Selection */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Select Time</p>
-                <select
-                  name="time"
-                  value={form.time}
-                  onChange={handleChange}
-                  className="mt-2 w-full rounded-lg border border-[#D8EAF6] bg-white px-4 py-2 text-sm text-slate-900 outline-none"
-                >
-                  <option value="">-- Select Time --</option>
-                  {availableTimes.map((t, index) => (
-                    <option key={index} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
+                {!form.date ? (
+                  <div className="mt-2 rounded-xl border border-dashed border-[#D8EAF6] px-4 py-5 text-sm text-slate-500">
+                    Select a date first to view the 10 equal appointment times.
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-2 rounded-xl bg-[#F6FAFD] p-4 text-sm text-slate-600">
+                      <span className="font-semibold text-slate-900">{remainingCount}</span> of 10 patient booking spots left for this 6-hour doctor session.
+                    </div>
+
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {availableTimeSlots.map((slot) => {
+                        const isSelected = form.time === slot.startTime;
+                        const isBooked = Array.isArray(selectedAvailability?.bookedTimes) &&
+                          selectedAvailability.bookedTimes.includes(slot.startTime);
+
+                        return (
+                          <button
+                            key={slot.startTime}
+                            type="button"
+                            disabled={isBooked}
+                            onClick={() => setForm((prev) => ({ ...prev, time: slot.startTime }))}
+                            className={`rounded-xl border px-4 py-3 text-left transition ${
+                              isBooked
+                                ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                                : isSelected
+                                ? "border-[#35B85A] bg-[#35B85A] text-white"
+                                : "border-[#D8EAF6] bg-white text-slate-800 hover:border-[#35B85A]"
+                            }`}
+                          >
+                            <div className="text-xs font-semibold uppercase tracking-wide opacity-80">
+                              {isBooked ? "Booked" : `Slot ${slot.index}`}
+                            </div>
+                            <div className="mt-1 text-sm font-bold">
+                              {slot.startTime} - {slot.endTime}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Email */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Your Email</p>
                 <input
@@ -239,7 +350,6 @@ export default function BookAppointment() {
                 />
               </div>
 
-              {/* Phone */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Your Phone</p>
                 <input
@@ -252,7 +362,6 @@ export default function BookAppointment() {
                 />
               </div>
 
-              {/* Reason */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Reason for Visit</p>
                 <textarea
@@ -264,7 +373,6 @@ export default function BookAppointment() {
                 />
               </div>
 
-              {/* Consultation Fee */}
               <div className="rounded-2xl border border-[#D8EAF6] bg-white p-4 shadow-sm">
                 <p className="text-sm font-bold text-slate-800">Consultation Fee</p>
                 <p className="mt-2 text-lg font-bold text-[#2459A6]">
@@ -275,7 +383,6 @@ export default function BookAppointment() {
                 </p>
               </div>
 
-              {/* Submit Button */}
               <div className="text-center">
                 <button
                   onClick={handleSubmit}
@@ -284,7 +391,7 @@ export default function BookAppointment() {
                     submitting
                       ? "cursor-not-allowed opacity-70"
                       : "cursor-pointer"
-                  } inline-flex w-full sm:w-auto items-center justify-center rounded-lg bg-[#2459A6] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1d4a8a]"`}
+                  } inline-flex w-full items-center justify-center rounded-lg bg-[#2459A6] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1d4a8a] sm:w-auto`}
                 >
                   {submitting ? "Processing payment..." : "Book & Pay Now"}
                 </button>
