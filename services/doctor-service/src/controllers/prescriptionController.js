@@ -17,10 +17,15 @@ exports.createPrescription = async (req, res) => {
       });
     }
 
+    const requiresMedicalReport = Boolean(req.body?.requiresMedicalReport);
+    const medicalReportRequestNote = String(req.body?.medicalReportRequestNote || "").trim();
+
     // Create prescription with doctorId from route
     const prescription = await Prescription.create({
       ...req.body,
       doctorId,
+      requiresMedicalReport,
+      medicalReportRequestNote,
     });
 
     res.status(201).json({
@@ -133,6 +138,13 @@ exports.getPrescriptionById = async (req, res) => {
 exports.updatePrescription = async (req, res) => {
   try {
     const { doctorId, prescriptionId } = req.params;
+
+    if (req.body?.requiresMedicalReport !== undefined) {
+      req.body.requiresMedicalReport = Boolean(req.body.requiresMedicalReport);
+    }
+    if (req.body?.medicalReportRequestNote !== undefined) {
+      req.body.medicalReportRequestNote = String(req.body.medicalReportRequestNote || "").trim();
+    }
 
     const prescription = await Prescription.findOneAndUpdate(
       { _id: prescriptionId, doctorId },

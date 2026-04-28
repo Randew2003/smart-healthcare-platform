@@ -1,4 +1,21 @@
 import Patient from "../models/Patient.js";
+import fs from "fs";
+import path from "path";
+
+function ensureUploadDir(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+function getUploadsBaseDir() {
+  // Store uploads in a folder inside the container/app directory.
+  return path.join(process.cwd(), "uploads");
+}
+
+function buildReportFilePath(fileNameOnDisk) {
+  return path.join(getUploadsBaseDir(), "reports", fileNameOnDisk);
+}
 
 
 export async function createProfile(req, res) {
@@ -219,6 +236,162 @@ export async function addReport(req, res) {
     return res.status(500).json({ message: error.message });
   }
 }
+
+// Upload a report file (multipart/form-data)
+// POST /api/patients/reports/upload
+export async function uploadReport(req, res) {
+  try {
+    const patient = await Patient.findOne({ userId: req.user.id });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found." });
+    }
+
+    const doctorId = String(req.body?.doctorId || "").trim();
+    const prescriptionId = String(req.body?.prescriptionId || "").trim();
+
+    if (!doctorId || !prescriptionId) {
+      return res.status(400).json({ message: "doctorId and prescriptionId are required." });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ message: "report file is required." });
+    }
+
+    // Persist report metadata.
+    patient.reports.push({
+      fileName: file.originalname,
+      fileUrl: file.filename,
+      doctorId,
+      prescriptionId,
+      uploadedAt: new Date()
+    });
+
+    await patient.save();
+
+    const saved = patient.reports[patient.reports.length - 1];
+
+    return res.status(201).json({
+      message: "Report uploaded successfully.",
+      report: saved
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+// GET /api/patients/reports/:reportId/file (patient)
+export async function downloadMyReportFile(req, res) {
+  try {
+    const patient = await Patient.findOne({ userId: req.user.id }).select("reports");
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found." });
+    }
+
+    const reportId = String(req.params.reportId || "").trim();
+    const report = (patient.reports || []).find((r) => String(r._id) === reportId);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found." });
+    }
+
+    const fileNameOnDisk = String(report.fileUrl || "").trim();
+    if (!fileNameOnDisk) {
+      return res.status(404).json({ message: "Report file is missing." });
+    }
+
+    const fullPath = buildReportFilePath(fileNameOnDisk);
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ message: "Report file not found on server." });
+    }
+
+    return res.download(fullPath, report.fileName);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+// GET /api/patients/doctor-view/:patientId/reports/:reportId/file (doctor/admin)
+export async function downloadPatientReportFileForDoctor(req, res) {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+    const reportId = String(req.params.reportId || "").trim();
+
+    let patient = await Patient.findOne({ userId: patientId }).select("reports");
+    if (!patient) {
+      patient = await Patient.findById(patientId).select("reports");
+    }
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const report = (patient.reports || []).find((r) => String(r._id) === reportId);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found." });
+    }
+
+    const fileNameOnDisk = String(report.fileUrl || "").trim();
+    if (!fileNameOnDisk) {
+      return res.status(404).json({ message: "Report file is missing." });
+    }
+
+    const fullPath = buildReportFilePath(fileNameOnDisk);
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ message: "Report file not found on server." });
+    }
+
+    return res.download(fullPath, report.fileName);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+// POST /api/patients/doctor-view/:patientId/reports/:reportId/feedback
+// Body: { doctorId, feedback }
+export async function leaveReportFeedback(req, res) {
+  try {
+    const patientId = String(req.params.patientId || "").trim();
+    const reportId = String(req.params.reportId || "").trim();
+    const doctorId = String(req.body?.doctorId || "").trim();
+    const feedback = String(req.body?.feedback || "").trim();
+
+    if (!doctorId || !feedback) {
+      return res.status(400).json({ message: "doctorId and feedback are required." });
+    }
+
+    let patient = await Patient.findOne({ userId: patientId });
+    if (!patient) {
+      patient = await Patient.findById(patientId);
+    }
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const report = (patient.reports || []).find((r) => String(r._id) === reportId);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found." });
+    }
+
+    // Ensure the feedback is written by the doctor that the report was shared with.
+    if (String(report.doctorId || "") !== doctorId) {
+      return res.status(403).json({ message: "Forbidden." });
+    }
+
+    report.doctorFeedback = feedback;
+    report.doctorFeedbackAt = new Date();
+    await patient.save();
+
+    return res.json({
+      message: "Feedback saved.",
+      report
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+// Ensure upload directories exist on module load.
+ensureUploadDir(path.join(getUploadsBaseDir(), "reports"));
 
 export async function getReports(req, res) {
   try {

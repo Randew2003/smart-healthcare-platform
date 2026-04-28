@@ -10,6 +10,7 @@ import Contact from "./pages/patient/Contact";
 import Telemedicine from "./pages/patient/Telemedicine";
 import Payments from "./pages/patient/Payments";
 import Profile from "./pages/patient/Profile";
+import Prescriptions from "./pages/patient/Prescriptions";
 import PaymentSuccess from "./pages/patient/PaymentSuccess";
 import PaymentCancel from "./pages/patient/PaymentCancel";
 import NotFound from "./pages/patient/NotFound";
@@ -81,6 +82,7 @@ export default function App() {
           <Route element={<ProtectedRoute roles={["patient"]} />}>
             <Route path="/payments" element={<Payments />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/prescriptions" element={<Prescriptions />} />
             <Route path="/book-appointment" element={<BookAppointment />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
           </Route>

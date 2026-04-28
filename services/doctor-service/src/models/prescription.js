@@ -58,6 +58,16 @@ const prescriptionSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
+    requiresMedicalReport: {
+      type: Boolean,
+      default: false,
+    },
+    medicalReportRequestNote: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   {
     timestamps: true,

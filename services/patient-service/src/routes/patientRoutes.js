@@ -1,4 +1,6 @@
 import { Router } from "express";
+import multer from "multer";
+import path from "path";
 import {
   createProfile,
   getMyProfile,
@@ -10,6 +12,11 @@ import {
   addReport,
   getReports,
 
+  uploadReport,
+  downloadMyReportFile,
+  downloadPatientReportFileForDoctor,
+  leaveReportFeedback,
+
   // Doctor-specific endpoints
   getPatientProfileForDoctor,
   getPatientMedicalHistoryForDoctor,
@@ -19,6 +26,21 @@ import {
 import { protect, authorize } from "../middleware/auth.js";
 
 const router = Router();
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      cb(null, path.join(process.cwd(), "uploads", "reports"));
+    },
+    filename: (_req, file, cb) => {
+      const safeOriginal = String(file.originalname || "report")
+        .replace(/[^a-zA-Z0-9._-]+/g, "_")
+        .slice(0, 120);
+      cb(null, `${Date.now()}_${Math.random().toString(16).slice(2)}_${safeOriginal}`);
+    }
+  }),
+  limits: { fileSize: 15 * 1024 * 1024 }
+});
 
 // Doctor-view routes
 // These routes allow doctors (or admins) to view patient data by patient userId.
@@ -47,6 +69,20 @@ router.get(
   getPatientReportsForDoctor
 );
 
+router.get(
+  "/doctor-view/:patientId/reports/:reportId/file",
+  protect,
+  authorize("doctor", "admin"),
+  downloadPatientReportFileForDoctor
+);
+
+router.post(
+  "/doctor-view/:patientId/reports/:reportId/feedback",
+  protect,
+  authorize("doctor", "admin"),
+  leaveReportFeedback
+);
+
 router.use(protect, authorize("patient"));
 
 router.post("/profile", createProfile);
@@ -61,5 +97,8 @@ router.get("/prescriptions", getPrescriptions);
 
 router.post("/reports", addReport);
 router.get("/reports", getReports);
+
+router.post("/reports/upload", upload.single("file"), uploadReport);
+router.get("/reports/:reportId/file", downloadMyReportFile);
 
 export default router;

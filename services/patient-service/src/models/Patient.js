@@ -4,6 +4,10 @@ const reportSchema = new mongoose.Schema(
   {
     fileName: { type: String, required: true, trim: true },
     fileUrl: { type: String, default: "", trim: true },
+    doctorId: { type: String, default: "", trim: true },
+    prescriptionId: { type: String, default: "", trim: true },
+    doctorFeedback: { type: String, default: "", trim: true },
+    doctorFeedbackAt: { type: Date, default: null },
     uploadedAt: { type: Date, default: Date.now }
   },
   { _id: true }
