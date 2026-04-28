@@ -2,6 +2,10 @@ import Patient from "../models/Patient.js";
 import fs from "fs";
 import path from "path";
 
+const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://doctor-service:4005";
+const NOTIFICATION_SERVICE_URL =
+  process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:4002/api/notifications/event";
+
 function ensureUploadDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -15,6 +19,70 @@ function getUploadsBaseDir() {
 
 function buildReportFilePath(fileNameOnDisk) {
   return path.join(getUploadsBaseDir(), "reports", fileNameOnDisk);
+}
+
+async function findOrCreatePatientProfileFromAuth(user) {
+  if (!user?.id) return null;
+
+  let patient = await Patient.findOne({ userId: user.id });
+  if (patient) return patient;
+
+  patient = await Patient.create({
+    userId: user.id,
+    fullName: user.fullName || "Patient",
+    email: user.email || `${user.id}@placeholder.local`,
+    phone: user.phone || "",
+    dob: null,
+    gender: "",
+    address: "",
+    bloodGroup: "",
+    allergies: [],
+    emergencyContactName: "",
+    emergencyContactPhone: ""
+  });
+
+  return patient;
+}
+
+async function sendDoctorReportNotification({ doctorId, patient, report }) {
+  if (!doctorId || !patient || !report) return;
+
+  try {
+    const doctorResponse = await fetch(
+      `${DOCTOR_SERVICE_URL}/api/doctors/${encodeURIComponent(doctorId)}`
+    );
+
+    if (!doctorResponse.ok) return;
+
+    const doctor = await doctorResponse.json();
+
+    await fetch(NOTIFICATION_SERVICE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "REPORT_UPLOADED",
+        patient: {
+          id: patient.userId || String(patient._id || ""),
+          name: patient.fullName || "",
+          email: patient.email || "",
+          phone: patient.phone || ""
+        },
+        doctor: {
+          id: String(doctorId),
+          name: doctor?.name || "",
+          email: doctor?.email || "",
+          phone: doctor?.phone || ""
+        },
+        report: {
+          id: String(report._id || ""),
+          fileName: report.fileName || "",
+          uploadedAt: report.uploadedAt || new Date().toISOString()
+        }
+      })
+    });
+  } catch (error) {
+    console.error("Failed to send doctor report notification:", error.message);
+  }
 }
 
 
@@ -241,7 +309,7 @@ export async function addReport(req, res) {
 // POST /api/patients/reports/upload
 export async function uploadReport(req, res) {
   try {
-    const patient = await Patient.findOne({ userId: req.user.id });
+    const patient = await findOrCreatePatientProfileFromAuth(req.user);
 
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found." });
@@ -271,6 +339,12 @@ export async function uploadReport(req, res) {
     await patient.save();
 
     const saved = patient.reports[patient.reports.length - 1];
+
+    sendDoctorReportNotification({
+      doctorId,
+      patient,
+      report: saved
+    });
 
     return res.status(201).json({
       message: "Report uploaded successfully.",
@@ -395,13 +469,48 @@ ensureUploadDir(path.join(getUploadsBaseDir(), "reports"));
 
 export async function getReports(req, res) {
   try {
-    const patient = await Patient.findOne({ userId: req.user.id }).select("reports");
+    const patient = await findOrCreatePatientProfileFromAuth(req.user);
 
     if (!patient) {
       return res.status(404).json({ message: "Patient profile not found." });
     }
 
-    return res.json(patient.reports);
+    return res.json(patient.reports || []);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getDoctorReportsFeed(req, res) {
+  try {
+    const doctorId = String(req.query?.doctorId || "").trim();
+
+    if (!doctorId) {
+      return res.status(400).json({ message: "doctorId is required." });
+    }
+
+    const patients = await Patient.find({ "reports.doctorId": doctorId }).select(
+      "userId fullName reports"
+    );
+
+    const reports = patients
+      .flatMap((patient) =>
+        (patient.reports || [])
+          .filter((report) => String(report?.doctorId || "") === doctorId)
+          .map((report) => ({
+            ...report.toObject(),
+            patientId: patient.userId || String(patient._id || ""),
+            patientProfileId: String(patient._id || ""),
+            patientName: patient.fullName || "Unknown patient"
+          }))
+      )
+      .sort((a, b) => {
+        const aTime = new Date(a?.uploadedAt || 0).getTime();
+        const bTime = new Date(b?.uploadedAt || 0).getTime();
+        return bTime - aTime;
+      });
+
+    return res.status(200).json(reports);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

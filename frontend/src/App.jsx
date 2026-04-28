@@ -34,6 +34,7 @@ import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 import DoctorPatients from "./pages/doctor/DoctorPatients";
 import DoctorPrescriptionHistory from "./pages/doctor/DoctorPrescriptionHistory";
+import DoctorReports from "./pages/doctor/DoctorReports";
 import DoctorTelemedicine from "./pages/doctor/DoctorTelemedicine";
 import DoctorAvailability from "./pages/doctor/DoctorAvailability";
 import DoctorProfile from "./pages/doctor/DoctorProfile";
@@ -93,6 +94,7 @@ export default function App() {
             <Route path="/doctor/appointments" element={<DoctorAppointments />} />
             <Route path="/doctor/patients" element={<DoctorPatients />} />
             <Route path="/doctor/prescriptions" element={<DoctorPrescriptionHistory />} />
+            <Route path="/doctor/reports" element={<DoctorReports />} />
             <Route path="/doctor/telemedicine" element={<DoctorTelemedicine />} />
             <Route path="/doctor/availability" element={<DoctorAvailability />} />
             <Route path="/doctor/profile" element={<DoctorProfile />} />

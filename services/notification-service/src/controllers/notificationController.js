@@ -8,7 +8,7 @@ export const handleNotificationEvent = async (req, res) => {
 
     console.log("Received event:", event);
 
-    const { type, patient, doctor, appointmentTime } = event;
+    const { type, patient, doctor, appointmentTime, report } = event;
 
     let subject = "";
     let message = "";
@@ -20,6 +20,9 @@ export const handleNotificationEvent = async (req, res) => {
     } else if (type === "CONSULTATION_COMPLETED") {
       subject = "Consultation Completed";
       message = "Your consultation has been completed successfully.";
+    } else if (type === "REPORT_UPLOADED") {
+      subject = "New Patient Report Uploaded";
+      message = `${patient?.name || "A patient"} uploaded ${report?.fileName || "a medical report"} for your review.`;
     } else {
       subject = "Notification";
       message = "You have a new update.";
