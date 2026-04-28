@@ -22,11 +22,17 @@ function buildGeneratedTimeSlots(startTime, endTime, slotCount = 10) {
   const startMinutes = timeToMinutes(startTime);
   const endMinutes = timeToMinutes(endTime);
 
-  if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes || slotCount <= 0) {
+  if (startMinutes === null || endMinutes === null || slotCount <= 0) {
     return [];
   }
 
-  const totalMinutes = endMinutes - startMinutes;
+  const normalizedEndMinutes = endMinutes <= startMinutes ? endMinutes + (24 * 60) : endMinutes;
+  const totalMinutes = normalizedEndMinutes - startMinutes;
+
+  if (totalMinutes <= 0) {
+    return [];
+  }
+
   const slotDuration = totalMinutes / slotCount;
 
   return Array.from({ length: slotCount }, (_, index) => {
@@ -73,12 +79,12 @@ export const createAppointment = async (req, res) => {
 
     const doctor = availabilityRes.data.data;
 
-     selectedSlot = doctor.availability.find(
-       (slot) =>
-         slot.date === date &&
-         time >= slot.startTime &&
-         time < slot.endTime
-      );
+     selectedSlot = doctor.availability.find((slot) => {
+       if (slot.date !== date) return false;
+
+       const slotTimes = buildGeneratedTimeSlots(slot.startTime, slot.endTime, 10);
+       return slotTimes.some((entry) => entry.startTime === time);
+      });
 
     if (!selectedSlot) {
       return res.status(400).json({

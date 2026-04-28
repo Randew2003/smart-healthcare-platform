@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
 import { api } from "../../utils/api";
@@ -24,11 +24,17 @@ function buildGeneratedTimeSlots(startTime, endTime, slotCount = 10) {
   const startMinutes = timeToMinutes(startTime);
   const endMinutes = timeToMinutes(endTime);
 
-  if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes || slotCount <= 0) {
+  if (startMinutes === null || endMinutes === null || slotCount <= 0) {
     return [];
   }
 
-  const totalMinutes = endMinutes - startMinutes;
+  const normalizedEndMinutes = endMinutes <= startMinutes ? endMinutes + (24 * 60) : endMinutes;
+  const totalMinutes = normalizedEndMinutes - startMinutes;
+
+  if (totalMinutes <= 0) {
+    return [];
+  }
+
   const slotDuration = totalMinutes / slotCount;
 
   return Array.from({ length: slotCount }, (_, index) => {
@@ -66,6 +72,7 @@ export default function BookAppointment() {
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState([]);
   const [availabilityMessage, setAvailabilityMessage] = useState("");
+  const latestAvailabilityRequestRef = useRef(0);
 
   const [form, setForm] = useState({
     patientId: user?.id || user?._id || "PATIENT123",
@@ -82,7 +89,9 @@ export default function BookAppointment() {
 
     setForm((prev) => ({
       ...prev,
-      doctorId: prev.doctorId || doctorIdFromQuery
+      doctorId: doctorIdFromQuery,
+      date: "",
+      time: ""
     }));
   }, [doctorIdFromQuery]);
 
@@ -108,6 +117,7 @@ export default function BookAppointment() {
 
   useEffect(() => {
     if (!form.doctorId) {
+      latestAvailabilityRequestRef.current += 1;
       setAvailability([]);
       setAvailabilityMessage("");
       setForm((prev) => ({ ...prev, date: "", time: "" }));
@@ -115,11 +125,17 @@ export default function BookAppointment() {
     }
 
     const fetchAvailability = async () => {
+      const requestId = latestAvailabilityRequestRef.current + 1;
+      latestAvailabilityRequestRef.current = requestId;
+
       try {
         setLoading(true);
+        setAvailability([]);
         setAvailabilityMessage("");
 
         const res = await api.get(`/api/doctors/${form.doctorId}/availability`);
+        if (latestAvailabilityRequestRef.current !== requestId) return;
+
         const doctor = res.data.data;
         const slots = Array.isArray(doctor?.availability) ? doctor.availability : [];
         const openSlots = slots
@@ -132,16 +148,27 @@ export default function BookAppointment() {
           .filter((slot) => !slot.isBooked);
 
         setAvailability(openSlots);
+        setForm((prev) => {
+          const hasSelectedDate = openSlots.some((slot) => slot.date === prev.date);
+          return {
+            ...prev,
+            date: hasSelectedDate ? prev.date : "",
+            time: hasSelectedDate ? prev.time : ""
+          };
+        });
 
         if (openSlots.length === 0) {
           setAvailabilityMessage("This doctor has no open dates right now.");
         }
       } catch (err) {
+        if (latestAvailabilityRequestRef.current !== requestId) return;
         console.log("Availability fetch error:", err.message);
         setAvailability([]);
         setAvailabilityMessage("Failed to load doctor availability.");
       } finally {
-        setLoading(false);
+        if (latestAvailabilityRequestRef.current === requestId) {
+          setLoading(false);
+        }
       }
     };
 
@@ -161,6 +188,12 @@ export default function BookAppointment() {
 
       return updated;
     });
+
+    if (name === "doctorId") {
+      latestAvailabilityRequestRef.current += 1;
+      setAvailability([]);
+      setAvailabilityMessage("");
+    }
   };
 
   const handleSubmit = async () => {
