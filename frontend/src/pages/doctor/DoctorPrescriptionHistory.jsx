@@ -58,6 +58,7 @@ export default function DoctorPrescriptionHistory() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
+  const [patientLookup, setPatientLookup] = useState({});
   const [patientIdFilter, setPatientIdFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [reportCache, setReportCache] = useState({});
@@ -82,9 +83,23 @@ export default function DoctorPrescriptionHistory() {
       const payload = normalizeApiPayload(data);
       const list = payload?.data || payload;
       const normalizedList = Array.isArray(list) ? list : [];
+      const patientIds = [...new Set(normalizedList.map((item) => item?.patientId).filter(Boolean))];
+      const patientEntries = await Promise.all(
+        patientIds.map(async (patientId) => {
+          try {
+            const response = await api.get(`/api/patients/doctor-view/${encodeURIComponent(patientId)}/profile`);
+            return [patientId, response?.data || null];
+          } catch {
+            return [patientId, null];
+          }
+        })
+      );
+
+      setPatientLookup(Object.fromEntries(patientEntries));
       setPrescriptions(normalizedList);
       setMessage(`Loaded ${normalizedList.length} prescriptions.`);
     } catch (err) {
+      setPatientLookup({});
       setPrescriptions([]);
       setError(err?.response?.data?.message || "Failed to load prescriptions.");
     } finally {
@@ -337,72 +352,88 @@ export default function DoctorPrescriptionHistory() {
             ) : null}
 
             <div className="grid gap-4">
-              {filteredPrescriptions.map((item) => (
-                <article
-                  key={item?._id}
-                  className="rounded-2xl border border-black/5 bg-[linear-gradient(180deg,#ffffff,#fbfdff)] p-5 shadow-sm"
-                >
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <h3 className="text-lg font-black text-slate-900">{item?.diagnosis || "Diagnosis not recorded"}</h3>
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
-                        <span>Patient ID: {item?.patientId || "-"}</span>
-                        <span>Appointment ID: {item?.appointmentId || "-"}</span>
-                        <span>Date: {formatDateTime(item?.prescriptionDate || item?.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-600">
-                      {Array.isArray(item?.medicines) ? item.medicines.length : 0} medicines
-                    </div>
-                  </div>
+              {filteredPrescriptions.map((item) => {
+                const patient = patientLookup[item?.patientId] || null;
+                const patientName = patient?.fullName || patient?.name || "Patient name not available";
 
-                  <div className="mt-4 grid gap-3 lg:grid-cols-3">
-                    <div className="rounded-xl border border-slate-200 bg-white p-4 lg:col-span-2">
-                      <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Medicine Summary</div>
-                      <div className="mt-2 text-sm font-semibold leading-6 text-slate-900">
-                        {medicineSummary(item?.medicines)}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-200 bg-white p-4">
-                      <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Prescription Date</div>
-                      <div className="mt-2 text-sm font-semibold text-slate-900">
-                        {formatDate(item?.prescriptionDate || item?.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {item?.notes ? (
-                    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-                      <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Notes</div>
-                      <div className="mt-2 text-sm leading-6 text-slate-700">{item.notes}</div>
-                    </div>
-                  ) : null}
-
-                  {Array.isArray(item?.medicines) && item.medicines.length > 0 ? (
-                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
-                      <div className="grid grid-cols-4 gap-0 bg-slate-50 px-4 py-3 text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
-                        <div>Medicine</div>
-                        <div>Dosage</div>
-                        <div>Frequency</div>
-                        <div>Duration</div>
-                      </div>
-                      {item.medicines.map((medicine, index) => (
-                        <div
-                          key={`${item?._id}-medicine-${index}`}
-                          className="grid grid-cols-4 gap-0 border-t border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
-                        >
-                          <div className="font-semibold text-slate-900">{medicine?.name || "-"}</div>
-                          <div>{medicine?.dosage || "-"}</div>
-                          <div>{medicine?.frequency || "-"}</div>
-                          <div>{medicine?.duration || "-"}</div>
+                return (
+                  <article
+                    key={item?._id}
+                    className="rounded-2xl border border-black/5 bg-[linear-gradient(180deg,#ffffff,#fbfdff)] p-5 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
+                          Patient Name
                         </div>
-                      ))}
+                        <h3 className="mt-1 text-lg font-black text-slate-900">{patientName}</h3>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                          <span>Patient ID: {item?.patientId || "-"}</span>
+                          <span>Appointment ID: {item?.appointmentId || "-"}</span>
+                          <span>Date: {formatDateTime(item?.prescriptionDate || item?.createdAt)}</span>
+                        </div>
+                      </div>
+                      <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-600">
+                        {Array.isArray(item?.medicines) ? item.medicines.length : 0} medicines
+                      </div>
                     </div>
-                  ) : null}
 
-                  {item?.requiresMedicalReport ? (
-                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
+                        Prescription Description
+                      </div>
+                      <div className="mt-2 text-sm leading-6 text-slate-700">
+                        {item?.diagnosis || "Diagnosis not recorded"}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-xl border border-slate-200 bg-white p-4 lg:col-span-2">
+                        <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Medicine Summary</div>
+                        <div className="mt-2 text-sm font-semibold leading-6 text-slate-900">
+                          {medicineSummary(item?.medicines)}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Prescription Date</div>
+                        <div className="mt-2 text-sm font-semibold text-slate-900">
+                          {formatDate(item?.prescriptionDate || item?.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {item?.notes ? (
+                      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">Notes</div>
+                        <div className="mt-2 text-sm leading-6 text-slate-700">{item.notes}</div>
+                      </div>
+                    ) : null}
+
+                    {Array.isArray(item?.medicines) && item.medicines.length > 0 ? (
+                      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200">
+                        <div className="grid grid-cols-4 gap-0 bg-slate-50 px-4 py-3 text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
+                          <div>Medicine</div>
+                          <div>Dosage</div>
+                          <div>Frequency</div>
+                          <div>Duration</div>
+                        </div>
+                        {item.medicines.map((medicine, index) => (
+                          <div
+                            key={`${item?._id}-medicine-${index}`}
+                            className="grid grid-cols-4 gap-0 border-t border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
+                          >
+                            <div className="font-semibold text-slate-900">{medicine?.name || "-"}</div>
+                            <div>{medicine?.dosage || "-"}</div>
+                            <div>{medicine?.frequency || "-"}</div>
+                            <div>{medicine?.duration || "-"}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {item?.requiresMedicalReport ? (
+                      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-amber-800">
@@ -483,10 +514,11 @@ export default function DoctorPrescriptionHistory() {
                           ))}
                         </div>
                       ) : null}
-                    </div>
-                  ) : null}
-                </article>
-              ))}
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
