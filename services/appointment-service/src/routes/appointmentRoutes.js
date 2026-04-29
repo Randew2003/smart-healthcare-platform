@@ -4,7 +4,8 @@ import {
   getAppointmentsByPatient,
   getAppointmentsByDoctor,
   updateAppointmentStatus,
-  cancelAppointment
+  cancelAppointment,
+  confirmAppointment
 } from '../controllers/appointmentController.js';
 
 const router = express.Router();
@@ -20,6 +21,9 @@ router.get('/doctor/:doctorId', getAppointmentsByDoctor);
 
 // Update appointment status (Confirm, Cancel, Complete)
 router.put('/:id/status', updateAppointmentStatus);
+
+// Confirm appointment (after payment)
+router.post('/:id/confirm', confirmAppointment);
 
 // Cancel appointment
 router.delete('/:id', cancelAppointment);

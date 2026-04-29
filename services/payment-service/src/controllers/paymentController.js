@@ -43,6 +43,7 @@ export async function createPayment(req, res) {
     const origin = host ? `${proto}://${host}` : "";
 
     const returnUrl = String(process.env.PAYMENT_RETURN_URL || (origin ? `${origin}/payment-success` : "")).trim();
+    const returnUrlWithAppointment = appointmentId ? `${returnUrl}?appointmentId=${encodeURIComponent(appointmentId)}` : returnUrl;
     const cancelUrl = String(process.env.PAYMENT_CANCEL_URL || (origin ? `${origin}/payment-cancel` : "")).trim();
 
     // Prefer building notify_url from the return_url origin so localhost keeps its port (e.g., http://localhost:3000).
@@ -96,7 +97,7 @@ export async function createPayment(req, res) {
       payhere: {
         checkoutUrl,
         merchant_id: merchantId,
-        return_url: returnUrl,
+        return_url: returnUrlWithAppointment,
         cancel_url: cancelUrl,
         notify_url: notifyUrl,
         order_id: payment.orderId,
