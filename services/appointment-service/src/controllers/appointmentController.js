@@ -123,48 +123,25 @@ export const createAppointment = async (req, res) => {
     });
    }
 
-    // Create appointment
+    // Create appointment with PENDING status (wait for payment confirmation)
     const appointment = new Appointment({
       patientId,
       doctorId,
       date,
       time,
-      notes
+      notes,
+      status: 'Pending'  // 🔥 Don't confirm until payment succeeds
     });
 
     // Generate meeting link (for video consultation)
     appointment.meetingLink = `https://meet.jit.si/appointment-${appointment._id}`;
 
-
     await appointment.save();
 
-    // 🔥 FETCH DOCTOR DETAILS
-    let doctorData = {};
-    try {
-      const doctorRes = await axios.get(`http://doctor-service:4005/api/doctors/${doctorId}`);
-      doctorData = doctorRes.data.data;
-    } catch (err) {
-      console.error("Doctor fetch failed:", err.message);
-    }
-
-    // 🔔 SEND NOTIFICATION (NON-BLOCKING)
-    axios.post("http://notification-service:4002/api/notifications/event", {
-      type: "APPOINTMENT_BOOKED",
-      patient: {
-        email: patientEmail,
-        phone: patientPhone
-      },
-      doctor: {
-        email: doctorData?.email,
-        phone: doctorData?.phone
-      },
-      appointmentTime: `${date} ${time}`
-    }).catch(err => {
-      console.error("Notification failed:", err.message);
-    });
+    // Don't send notification yet - wait for payment confirmation
 
     res.status(201).json({
-      message: 'Appointment created successfully',
+      message: 'Appointment created successfully. Awaiting payment confirmation.',
       appointment
     });
 
@@ -286,6 +263,57 @@ export const cancelAppointment = async (req, res) => {
 
     res.json({
       message: 'Appointment cancelled successfully',
+      appointment
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Confirm appointment (called after successful payment)
+export const confirmAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { patientEmail, patientPhone } = req.body;
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      { status: 'Confirmed' },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // 🔥 FETCH DOCTOR DETAILS
+    let doctorData = {};
+    try {
+      const doctorRes = await axios.get(`http://doctor-service:4005/api/doctors/${appointment.doctorId}`);
+      doctorData = doctorRes.data.data;
+    } catch (err) {
+      console.error("Doctor fetch failed:", err.message);
+    }
+
+    // 🔔 SEND NOTIFICATION (NOW that payment is confirmed)
+    axios.post("http://notification-service:4002/api/notifications/event", {
+      type: "APPOINTMENT_BOOKED",
+      patient: {
+        email: patientEmail,
+        phone: patientPhone
+      },
+      doctor: {
+        email: doctorData?.email,
+        phone: doctorData?.phone
+      },
+      appointmentTime: `${appointment.date} ${appointment.time}`
+    }).catch(err => {
+      console.error("Notification failed:", err.message);
+    });
+
+    res.json({
+      message: 'Appointment confirmed and notification sent',
       appointment
     });
 
