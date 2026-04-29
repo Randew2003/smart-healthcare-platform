@@ -37,7 +37,14 @@ export default function MyAppointments() {
 
       const { data } = await api.get(endpoint);
       
-      setAppointments(Array.isArray(data) ? data : []);
+      // Filter: Patients see only confirmed appointments, doctors see all
+      const filteredAppointments = Array.isArray(data) 
+        ? user?.role === "doctor" 
+          ? data 
+          : data.filter(apt => apt.status === 'Confirmed')
+        : [];
+      
+      setAppointments(filteredAppointments);
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load appointments.");
       setAppointments([]);

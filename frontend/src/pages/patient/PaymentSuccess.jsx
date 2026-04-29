@@ -1,7 +1,40 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import MainLayout from "../../layouts/MainLayout";
+import { api } from "../../utils/api";
+import { getUser } from "../../utils/auth";
 
 export default function PaymentSuccess() {
+  const [searchParams] = useSearchParams();
+  const [confirming, setConfirming] = useState(true);
+  const [confirmed, setConfirmed] = useState(false);
+  const user = getUser();
+  const appointmentId = searchParams.get("appointmentId");
+
+  useEffect(() => {
+    if (!appointmentId) {
+      setConfirming(false);
+      return;
+    }
+
+    const confirmAppointment = async () => {
+      try {
+        await api.post(`/api/appointments/${appointmentId}/confirm`, {
+          patientEmail: user?.email,
+          patientPhone: user?.phone
+        });
+        setConfirmed(true);
+      } catch (err) {
+        console.error("Failed to confirm appointment:", err.message);
+        setConfirmed(false);
+      } finally {
+        setConfirming(false);
+      }
+    };
+
+    confirmAppointment();
+  }, [appointmentId, user?.email, user?.phone]);
+
   return (
     <MainLayout>
       <section className="bg-[#F6FAFD] text-slate-800">
@@ -19,10 +52,19 @@ export default function PaymentSuccess() {
               Payment Successful
             </h1>
 
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
-              Your payment was completed successfully. You can view your payment
-              history or return to your appointments.
-            </p>
+            {confirming ? (
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+                Confirming your appointment...
+              </p>
+            ) : confirmed ? (
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+                Your payment was completed successfully and your appointment is now confirmed. You will receive a notification with the details.
+              </p>
+            ) : (
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+                Your payment was completed successfully. You can view your payment history or return to your appointments.
+              </p>
+            )}
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
