@@ -1,12 +1,10 @@
 node_modules/
 dist/
 build/
-.env
-.env.*
 #!.env.example
 coverage/
-.vscode/
 .idea/
 .DS_Store
 Thumbs.db
 uploads/
+config.bat
